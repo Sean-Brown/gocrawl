@@ -1,30 +1,19 @@
 package gocrawl
 
 import (
-	"time"
+	"flag"
 	"os/signal"
 	"os"
 	"log"
-	"github.com/PuerkitoBio/goquery"
 )
 
-type DataCollection struct {
-	/* the url fetched */
-	url string
-	/* the time the url was fetched */
-	fetched time.Time
-	/* the parsed data */
-	dom *goquery.Document
-}
-
-func Init(url string, dom *goquery.Document) DataCollection {
-	return DataCollection{url:url, fetched:time.Now().UTC(), dom:dom}
-}
+var config = flag.String("config", "", "The path to the configuration file")
 
 func main() {
 	/* *** Setup *** */
 	/* channel to funnel URLs through */
-	urls := make(chan string)
+	urls := make(chan string, 1)
+	urls <- *urlStart
 	/* channel to funnel URL DOM data through */
 	data := make(chan DataCollection)
 	/* channel to signal workers to quit */
