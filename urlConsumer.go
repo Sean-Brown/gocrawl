@@ -10,7 +10,7 @@ import (
 
 /* The URL Consumer */
 type URLConsumer struct {
-	/* Inheritance from the consumer struct */
+	/* Compose with the Consumer struct */
 	Consumer
 	/* channel of strings that the consumer consumes */
 	urls chan string
@@ -19,7 +19,6 @@ type URLConsumer struct {
 	/* the parsing rules */
 	rules URLParsingRules
 }
-
 /* Make a new URL consumer */
 func NewURLConsumer(urls chan string, data chan DataCollection, quit chan int, rules URLParsingRules) *URLConsumer {
 	c := &URLConsumer{
@@ -35,22 +34,17 @@ func NewURLConsumer(urls chan string, data chan DataCollection, quit chan int, r
 	return c
 }
 
-/* Rules for parsing */
+/* Rules for parsing urls */
 type URLParsingRules struct {
 	sameDomain bool
-	dataTags []string
 }
-
 /* Default URL Parsing rules */
 func NewURLParsingRules() URLParsingRules {
-	return URLParsingRules{sameDomain: true, dataTags: []string{body}}
+	return URLParsingRules{sameDomain: true}
 }
 /* Initialize URL Parsing rules defined by the user */
-func InitURLParsingRules(sameDomain bool, dataTags []string) URLParsingRules {
-	if dataTags == nil || len(dataTags) == 0 {
-		dataTags = []string{body}
-	}
-	return URLParsingRules{sameDomain: sameDomain, dataTags: dataTags}
+func InitURLParsingRules(sameDomain bool) URLParsingRules {
+	return URLParsingRules{sameDomain: sameDomain}
 }
 
 /* Consumption Loop */
