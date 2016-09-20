@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-type DataConsumer struct {
+type InMemoryDataConsumer struct {
 	/* Inherit from Consumer */
 	Consumer
 	/* the channel of data that the consumer will parse */
@@ -13,8 +13,8 @@ type DataConsumer struct {
 }
 
 /* Make a new Data consumer */
-func NewDataConsumer(data chan DataCollection, quit chan int) *DataConsumer {
-	c := &DataConsumer{
+func NewDataConsumer(data chan DataCollection, quit chan int) *InMemoryDataConsumer {
+	c := &InMemoryDataConsumer{
 		Consumer: Consumer {
 			quit: quit,
 			waitGroup: &sync.WaitGroup{},
@@ -26,7 +26,7 @@ func NewDataConsumer(data chan DataCollection, quit chan int) *DataConsumer {
 }
 
 /* Consumption Loop */
-func (consumer *DataConsumer) Consume() {
+func (consumer *InMemoryDataConsumer) Consume() {
 	defer consumer.waitGroup.Done()
 	for {
 		select {
@@ -41,6 +41,6 @@ func (consumer *DataConsumer) Consume() {
 }
 
 /* Consume the data */
-func (consumer *DataConsumer) consume(data DataCollection) {
+func (consumer *InMemoryDataConsumer) consume(data DataCollection) {
 	/* TODO consume the data */
 }
