@@ -1,4 +1,4 @@
-package crawler
+package gocrawl
 
 import (
 	"sync"
@@ -18,13 +18,18 @@ type DataConsumer struct {
 	storage DataStorage
 }
 /* Make a new Data consumer */
-func NewDataConsumer(data chan DataCollection, quit chan int) *DataConsumer {
+func NewDataConsumer(data chan DataCollection, quit chan int, rules []DOMParsingRule, storage *DataStorage) *DataConsumer {
+	if rules == nil {
+		rules = []DOMParsingRule{}
+	}
 	c := &DataConsumer{
 		Consumer: Consumer {
 			quit: quit,
 			waitGroup: &sync.WaitGroup{},
 		},
 		data: data,
+		rules: rules,
+		storage: storage,
 	}
 	c.waitGroup.Add(1)
 	return c

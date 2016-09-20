@@ -1,4 +1,4 @@
-package crawler
+package gocrawl
 
 import (
 	"time"
@@ -22,6 +22,7 @@ func Init(url string, dom *goquery.Document) DataCollection {
 }
 
 func main() {
+	/* *** Setup *** */
 	/* channel to funnel URLs through */
 	urls := make(chan string)
 	/* channel to funnel URL DOM data through */
@@ -32,18 +33,13 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 
-	/* TODO figure out how to dynamically scale to multiple consumers */
-	/* TODO figure out how to dynamically set the parsing rules */
+	/* *** Consume URLs and data *** */
 	urlConsumer := NewURLConsumer(urls, data, quit, NewURLParsingRules())
-	go func() {
-		urlConsumer.Consume()
-	}()
-	dataConsumer := NewDataConsumer(data, quit)
-	go func() {
-		dataConsumer.Consume()
-	}()
+	go urlConsumer.Consume()
+	dataConsumer := NewDataConsumer(data, quit, nil, &InMemoryDataStorage{})
+	go dataConsumer.Consume()
 
-	/* wait until the program receives an interrupt */
+	/* *** Wait until the program receives an interrupt *** */
 	interrupt := <-sig
 	log.Println(interrupt)
 	/* signal the threads to quit */
