@@ -34,19 +34,6 @@ func NewURLConsumer(urls chan string, data chan DataCollection, quit chan int, r
 	return c
 }
 
-/* Rules for parsing urls */
-type URLParsingRules struct {
-	sameDomain bool
-}
-/* Default URL Parsing rules */
-func NewURLParsingRules() URLParsingRules {
-	return URLParsingRules{sameDomain: true}
-}
-/* Initialize URL Parsing rules defined by the user */
-func InitURLParsingRules(sameDomain bool) URLParsingRules {
-	return URLParsingRules{sameDomain: sameDomain}
-}
-
 /* Consumption Loop */
 func (consumer *URLConsumer) Consume() {
 	defer consumer.waitGroup.Done()

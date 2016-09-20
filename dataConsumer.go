@@ -13,14 +13,14 @@ type DataConsumer struct {
 	/* the channel of data that the consumer will parse */
 	data chan DataCollection
 	/* the rules for parsing the DOM */
-	rules []DOMParsingRule
+	rules []DataParsingRule
 	/* a dependency-injected data storage object to persist the data */
 	storage DataStorage
 }
 /* Make a new Data consumer */
-func NewDataConsumer(data chan DataCollection, quit chan int, rules []DOMParsingRule, storage DataStorage) *DataConsumer {
+func NewDataConsumer(data chan DataCollection, quit chan int, rules []DataParsingRule, storage DataStorage) *DataConsumer {
 	if rules == nil {
-		rules = []DOMParsingRule{}
+		rules = []DataParsingRule{}
 	}
 	c := &DataConsumer{
 		Consumer: Consumer {
@@ -33,14 +33,6 @@ func NewDataConsumer(data chan DataCollection, quit chan int, rules []DOMParsing
 	}
 	c.waitGroup.Add(1)
 	return c
-}
-
-/* rules for parsing data from the DOM */
-type DOMParsingRule struct {
-	/* url pattern to match the rule to */
-	urlMatch string
-	/* the data goquery selector string (e.g. "div.content > div#main p.text") */
-	dataSelector string
 }
 
 /* Consumption Loop */
