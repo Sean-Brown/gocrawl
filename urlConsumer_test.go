@@ -35,7 +35,7 @@ func initURLConsumer(sameDomain bool) *URLConsumer {
 	return &URLConsumer{
 		/* make a buffered channel so the go routines won't freeze */
 		urls: make(chan string, 2),
-		rules: InitURLParsingRules(sameDomain, nil),
+		rules: InitURLParsingRules(sameDomain),
 	}
 }
 func assertLinksFound(t *testing.T, urls chan string, expected int) {
