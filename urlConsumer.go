@@ -10,14 +10,12 @@ import (
 
 /* The URL Consumer */
 type URLConsumer struct {
+	/* Inheritance from the consumer struct */
+	Consumer
 	/* channel of strings that the consumer consumes */
 	urls chan string
 	/* the channel of data that will be parsed by a parser */
 	data chan DataCollection
-	/* channel to tell the consumer when to quit */
-	quit chan int
-	/* waitGroup to signal to the main service when the consumer thread has stopped */
-	waitGroup *sync.WaitGroup
 	/* the parsing rules */
 	rules URLParsingRules
 }
@@ -25,10 +23,12 @@ type URLConsumer struct {
 /* Make a new URL consumer */
 func NewURLConsumer(urls chan string, data chan DataCollection, quit chan int, rules URLParsingRules) *URLConsumer {
 	c := &URLConsumer{
+		Consumer: Consumer{
+			quit: quit,
+			waitGroup: &sync.WaitGroup{},
+		},
 		urls: urls,
 		data: data,
-		quit: quit,
-		waitGroup: &sync.WaitGroup{},
 		rules: rules,
 	}
 	c.waitGroup.Add(1)
