@@ -62,7 +62,7 @@ func (consumer *URLConsumer) consume(doc *goquery.Document) {
 	consumer.parseLinks(doc)
 
 	/* enqueue the data */
-	consumer.data <- Init(doc.Url.String(), doc)
+	consumer.data <- InitDataCollection(doc.Url.String(), doc)
 }
 
 /* Parse and enqueue the links from the document */
