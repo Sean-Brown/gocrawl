@@ -1,11 +1,11 @@
 package gocrawl
 
 import (
-	"sync"
-	"log"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bobesa/go-domain-util/domainutil"
+	"log"
 	"strings"
+	"sync"
 )
 
 /* The URL Consumer */
@@ -21,15 +21,16 @@ type URLConsumer struct {
 	/* a store of urls already crawled */
 	crawled map[string]bool
 }
+
 /* Make a new URL consumer */
 func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, rules URLParsingRules) *URLConsumer {
 	c := &URLConsumer{
 		Consumer: Consumer{
-			quit: quit,
+			quit:      quit,
 			waitGroup: &sync.WaitGroup{},
 		},
-		urls: urls,
-		data: data,
+		urls:  urls,
+		data:  data,
 		rules: rules,
 	}
 	c.waitGroup.Add(1)
@@ -52,7 +53,7 @@ func (consumer *URLConsumer) Consume() {
 				log.Println(err)
 			} else if urlData.depth < consumer.rules.MaxDepth && !consumer.crawled[urlData.url] {
 				/* consume the document in a separate thread */
-				go consumer.consume(doc, urlData.depth + 1)
+				go consumer.consume(doc, urlData.depth+1)
 			}
 		}
 	}
@@ -70,7 +71,7 @@ func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 /* Parse and enqueue the links from the document */
 func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 	domain := domainutil.Domain(doc.Url.String())
-	doc.Find(a).Each(func (_ int, sel *goquery.Selection) {
+	doc.Find(a).Each(func(_ int, sel *goquery.Selection) {
 		href, exists := sel.Attr(href)
 		if exists {
 			/* there is an href attribute, try adding it to the urls channel */
@@ -85,5 +86,5 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 				consumer.urls <- InitURLData(href, depth)
 			}
 		}
-	});
+	})
 }

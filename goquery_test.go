@@ -1,9 +1,9 @@
 package gocrawl
 
 import (
-	"testing"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
+	"testing"
 )
 
 const dom = `<html>

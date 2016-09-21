@@ -1,10 +1,10 @@
 package gocrawl
 
 import (
-	"testing"
-	"strings"
 	"os"
 	"os/exec"
+	"strings"
+	"testing"
 )
 
 /* A valid JSON configuration as a byte array*/

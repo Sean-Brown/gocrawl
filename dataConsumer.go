@@ -1,10 +1,10 @@
 package gocrawl
 
 import (
-	"sync"
+	"github.com/PuerkitoBio/goquery"
 	"log"
 	"regexp"
-	"github.com/PuerkitoBio/goquery"
+	"sync"
 )
 
 type DataConsumer struct {
@@ -17,18 +17,19 @@ type DataConsumer struct {
 	/* a dependency-injected data storage object to persist the data */
 	storage DataStorage
 }
+
 /* Make a new Data consumer */
 func NewDataConsumer(data chan DataCollection, quit chan int, rules []DataParsingRule, storage DataStorage) *DataConsumer {
 	if rules == nil {
 		rules = []DataParsingRule{}
 	}
 	c := &DataConsumer{
-		Consumer: Consumer {
-			quit: quit,
+		Consumer: Consumer{
+			quit:      quit,
 			waitGroup: &sync.WaitGroup{},
 		},
-		data: data,
-		rules: rules,
+		data:    data,
+		rules:   rules,
 		storage: storage,
 	}
 	c.waitGroup.Add(1)
@@ -61,7 +62,7 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 		} else if matched {
 			/* the rule does apply to this url, apply the rule */
 			log.Println("Matched <", rule.UrlMatch, "> to ", data.url)
-			data.dom.Find(rule.DataSelector).Each(func (_ int, sel *goquery.Selection) {
+			data.dom.Find(rule.DataSelector).Each(func(_ int, sel *goquery.Selection) {
 				/* store the data */
 				consumer.storage.Store(sel.Text())
 			})

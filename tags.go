@@ -4,10 +4,10 @@ package gocrawl
 const (
 	html = "html"
 	body = "body"
-	div = "div"
-	p = "p"
-	a = "a"
-	img = "img"
+	div  = "div"
+	p    = "p"
+	a    = "a"
+	img  = "img"
 )
 
 /* attributes */

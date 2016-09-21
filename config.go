@@ -1,16 +1,16 @@
 package gocrawl
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
-	"encoding/json"
 )
 
 /* The configuration for crawling. Note the field names need to start with capital
 letters in order for the JSON parser to not ignore the field (lower-case members are ignored) */
 type Config struct {
-	StartUrl string
-	UrlParsingRules URLParsingRules
+	StartUrl         string
+	UrlParsingRules  URLParsingRules
 	DataParsingRules []DataParsingRule
 }
 
@@ -32,9 +32,10 @@ type DataParsingRule struct {
 func NewURLParsingRules() URLParsingRules {
 	return URLParsingRules{SameDomain: true}
 }
+
 /* Initialize URL Parsing rules defined by the user */
 func InitURLParsingRules(sameDomain bool, maxDepth int) URLParsingRules {
-	return URLParsingRules{SameDomain: sameDomain, MaxDepth:maxDepth}
+	return URLParsingRules{SameDomain: sameDomain, MaxDepth: maxDepth}
 }
 
 func ReadConfig(path string) Config {

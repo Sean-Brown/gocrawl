@@ -1,8 +1,8 @@
 package gocrawl
 
 import (
-	"time"
 	"github.com/PuerkitoBio/goquery"
+	"time"
 )
 
 type DataCollection struct {
@@ -15,5 +15,5 @@ type DataCollection struct {
 }
 
 func InitDataCollection(url string, dom *goquery.Document) DataCollection {
-	return DataCollection{url:url, fetched:time.Now().UTC(), dom:dom}
+	return DataCollection{url: url, fetched: time.Now().UTC(), dom: dom}
 }

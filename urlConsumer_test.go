@@ -1,10 +1,10 @@
 package gocrawl
 
 import (
-	"testing"
 	"github.com/PuerkitoBio/goquery"
-	"strings"
 	"net/url"
+	"strings"
+	"testing"
 )
 
 const urlConsumerDom = `<html>
@@ -21,6 +21,7 @@ const urlConsumerDom = `<html>
 <h2 class="header">header2</h2>
 </div>
 </html>`
+
 var _url = &url.URL{Path: "www.a.com/somepage"}
 
 func makeNewDoc(t *testing.T) *goquery.Document {
@@ -34,7 +35,7 @@ func makeNewDoc(t *testing.T) *goquery.Document {
 func initURLConsumer(sameDomain bool) *URLConsumer {
 	return &URLConsumer{
 		/* make a buffered channel so the go routines won't freeze */
-		urls: make(chan URLData, 2),
+		urls:  make(chan URLData, 2),
 		rules: InitURLParsingRules(sameDomain, 10),
 	}
 }
