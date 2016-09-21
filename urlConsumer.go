@@ -48,7 +48,7 @@ func (consumer *URLConsumer) Consume() {
 			doc, err := goquery.NewDocument(urlData.url)
 			if err != nil {
 				log.Println(err)
-			} else if urlData.depth < consumer.rules.Depth{
+			} else if urlData.depth < consumer.rules.MaxDepth {
 				/* consume the document in a separate thread */
 				go consumer.consume(doc, urlData.depth + 1)
 			}
