@@ -34,11 +34,11 @@ func makeNewDoc(t *testing.T) *goquery.Document {
 func initURLConsumer(sameDomain bool) *URLConsumer {
 	return &URLConsumer{
 		/* make a buffered channel so the go routines won't freeze */
-		urls: make(chan string, 2),
-		rules: InitURLParsingRules(sameDomain),
+		urls: make(chan URLData, 2),
+		rules: InitURLParsingRules(sameDomain, 10),
 	}
 }
-func assertLinksFound(t *testing.T, urls chan string, expected int) {
+func assertLinksFound(t *testing.T, urls chan URLData, expected int) {
 	found := len(urls)
 	if found != expected {
 		t.Fatal("Failed to find all the urls. Expected: ", expected, ", Actual: ", found)
@@ -48,13 +48,13 @@ func assertLinksFound(t *testing.T, urls chan string, expected int) {
 func TestParsesAllLinksWhenAllDomainsAreAllowed(t *testing.T) {
 	c := initURLConsumer(false)
 	doc := makeNewDoc(t)
-	c.parseLinks(doc)
+	c.parseLinks(doc, 1)
 	assertLinksFound(t, c.urls, 2)
 }
 
 func TestDoesNotParseLinksWhenOnlyLinksInTheSameDomainAreAllowed(t *testing.T) {
 	c := initURLConsumer(true)
 	doc := makeNewDoc(t)
-	c.parseLinks(doc)
+	c.parseLinks(doc, 1)
 	assertLinksFound(t, c.urls, 1)
 }
