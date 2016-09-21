@@ -40,11 +40,12 @@ func NewDataConsumer(data chan DataCollection, quit chan int, rules []config.Dat
 /* Consumption Loop */
 func (consumer *DataConsumer) Consume() {
 	defer consumer.WaitGroup.Done()
+loop:
 	for {
 		select {
 		case <-consumer.Quit:
 			log.Println("data consumer received the quit signal")
-			break
+			break loop
 		case data := <-consumer.data:
 			log.Println("data consumer received data for ", data.url)
 			go consumer.consume(data)

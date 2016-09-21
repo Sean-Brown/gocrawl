@@ -41,11 +41,12 @@ func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, 
 /* Consumption Loop */
 func (consumer *URLConsumer) Consume() {
 	defer consumer.WaitGroup.Done()
+loop:
 	for {
 		select {
 		case <-consumer.Quit:
 			log.Println("url onsumer received the quit signal")
-			break
+			break loop
 		case urlData := <-consumer.urls:
 			log.Println("url consumer consuming: ", urlData.url)
 			/* Download the DOM */

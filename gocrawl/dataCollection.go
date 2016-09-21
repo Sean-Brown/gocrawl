@@ -7,13 +7,13 @@ import (
 
 type DataCollection struct {
 	/* the url fetched */
-	url string
+	URL string
 	/* the time the url was fetched */
-	fetched time.Time
+	Fetched time.Time
 	/* the parsed data */
-	dom *goquery.Document
+	DOM *goquery.Document
 }
 
 func InitDataCollection(url string, dom *goquery.Document) DataCollection {
-	return DataCollection{url: url, fetched: time.Now().UTC(), dom: dom}
+	return DataCollection{URL: url, Fetched: time.Now().UTC(), DOM: dom}
 }
