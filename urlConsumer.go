@@ -72,7 +72,7 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document) {
 		href, exists := sel.Attr(href)
 		if exists {
 			/* there is an href attribute, try adding it to the urls channel */
-			if consumer.rules.sameDomain {
+			if consumer.rules.SameDomain {
 				/* check that the domains are equal */
 				if strings.EqualFold(domain, domainutil.Domain(href)) {
 					/* the domains are equal, enqueue the href */

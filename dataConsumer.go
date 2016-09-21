@@ -55,13 +55,13 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 	/* iterate the DOM-parsing rules */
 	for _, rule := range consumer.rules {
 		/* check if this rule applies to this url */
-		matched, err := regexp.MatchString(rule.urlMatch, data.url)
+		matched, err := regexp.MatchString(rule.UrlMatch, data.url)
 		if err != nil {
-			log.Println("Error matching url regex <", rule.urlMatch, "> with ", data.url)
+			log.Println("Error matching url regex <", rule.UrlMatch, "> with ", data.url)
 		} else if matched {
 			/* the rule does apply to this url, apply the rule */
-			log.Println("Matched <", rule.urlMatch, "> to ", data.url)
-			data.dom.Find(rule.dataSelector).Each(func (_ int, sel *goquery.Selection) {
+			log.Println("Matched <", rule.UrlMatch, "> to ", data.url)
+			data.dom.Find(rule.DataSelector).Each(func (_ int, sel *goquery.Selection) {
 				/* store the data */
 				consumer.storage.Store(sel.Text())
 			})
