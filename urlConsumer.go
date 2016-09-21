@@ -20,7 +20,7 @@ type URLConsumer struct {
 	rules URLParsingRules
 }
 /* Make a new URL consumer */
-func NewURLConsumer(urls chan string, data chan DataCollection, quit chan int, rules URLParsingRules) *URLConsumer {
+func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, rules URLParsingRules) *URLConsumer {
 	c := &URLConsumer{
 		Consumer: Consumer{
 			quit: quit,
@@ -42,31 +42,31 @@ func (consumer *URLConsumer) Consume() {
 		case <-consumer.quit:
 			log.Println("url onsumer received the quit signal")
 			break
-		case url := <-consumer.urls:
-			log.Println("url consumer consuming: ", url)
+		case urlData := <-consumer.urls:
+			log.Println("url consumer consuming: ", urlData.url)
 			/* Download the DOM */
-			doc, err := goquery.NewDocument(url)
+			doc, err := goquery.NewDocument(urlData.url)
 			if err != nil {
 				log.Println(err)
-			} else {
+			} else if urlData.depth < consumer.rules.Depth{
 				/* consume the document in a separate thread */
-				go consumer.consume(doc)
+				go consumer.consume(doc, urlData.depth + 1)
 			}
 		}
 	}
 }
 
 /* Consume the url */
-func (consumer *URLConsumer) consume(doc *goquery.Document) {
+func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 	/* Parse and enqueue the links */
-	consumer.parseLinks(doc)
+	consumer.parseLinks(doc, depth)
 
 	/* enqueue the data */
 	consumer.data <- InitDataCollection(doc.Url.String(), doc)
 }
 
 /* Parse and enqueue the links from the document */
-func (consumer *URLConsumer) parseLinks(doc *goquery.Document) {
+func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 	domain := domainutil.Domain(doc.Url.String())
 	doc.Find(a).Each(func (_ int, sel *goquery.Selection) {
 		href, exists := sel.Attr(href)
@@ -76,11 +76,11 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document) {
 				/* check that the domains are equal */
 				if strings.EqualFold(domain, domainutil.Domain(href)) {
 					/* the domains are equal, enqueue the href */
-					consumer.urls <- href
+					consumer.urls <- InitURLData(href, depth)
 				}
 			} else {
 				/* enqueue the href without checking the domain */
-				consumer.urls <- href
+				consumer.urls <- InitURLData(href, depth)
 			}
 		}
 	});
