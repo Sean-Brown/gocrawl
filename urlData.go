@@ -5,6 +5,6 @@ type URLData struct {
 	depth int
 }
 
-func InitUrlData(url string, depth int) URLData {
+func InitURLData(url string, depth int) URLData {
 	return URLData{url:url, depth:depth}
 }
