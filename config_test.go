@@ -12,7 +12,8 @@ var validJSONConfig = []byte(
 	`{
 	"startUrl": "www.abc.com",
 	"urlParsingRules": {
-		"sameDomain": true
+		"sameDomain": true,
+		"depth": 10
 	},
 	"dataParsingRules": [
 		{
@@ -31,7 +32,8 @@ var lowerJSONConfig = []byte(
 	`{
 	"starturl": "www.abc.com",
 	"urlparsingrules": {
-		"sameDomain": true
+		"sameDomain": true,
+		"depth": 10
 	},
 	"dataparsingrules": [
 		{
@@ -50,7 +52,8 @@ var invalidJSONConfig = []byte(
 	`{
 	"startUrl": "www.abc.com",
 	"urlRules": {
-		"sameDomain": true
+		"sameDomain": true,
+		"depth": 10
 	},
 	"dataRules": [
 		{
