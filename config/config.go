@@ -1,4 +1,4 @@
-package gocrawl
+package config
 
 import (
 	"encoding/json"

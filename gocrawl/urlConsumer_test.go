@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"github.com/Sean-Brown/gocrawl/config"
 )
 
 const urlConsumerDom = `<html>
@@ -36,7 +37,7 @@ func initURLConsumer(sameDomain bool) *URLConsumer {
 	return &URLConsumer{
 		/* make a buffered channel so the go routines won't freeze */
 		urls:  make(chan URLData, 2),
-		rules: InitURLParsingRules(sameDomain, 10),
+		rules: config.InitURLParsingRules(sameDomain, 10),
 	}
 }
 func assertLinksFound(t *testing.T, urls chan URLData, expected int) {

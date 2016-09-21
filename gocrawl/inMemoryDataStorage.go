@@ -3,7 +3,7 @@ package gocrawl
 import "log"
 
 type InMemoryDataStorage struct {
-	/* Implement the DataStorage interface */
+	/* Implement the DataStorage interfaces */
 	DataStorage
 	/* Store data in a map of <url, data> */
 	ds map[string]string

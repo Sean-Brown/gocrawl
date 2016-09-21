@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"github.com/Sean-Brown/gocrawl/config"
 )
 
 /* The URL Consumer */
@@ -17,32 +18,32 @@ type URLConsumer struct {
 	/* the channel of data that will be parsed by a data consumer */
 	data chan DataCollection
 	/* the parsing rules */
-	rules URLParsingRules
+	rules config.URLParsingRules
 	/* a store of urls already crawled */
 	crawled map[string]bool
 }
 
 /* Make a new URL consumer */
-func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, rules URLParsingRules) *URLConsumer {
+func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, rules config.URLParsingRules) *URLConsumer {
 	c := &URLConsumer{
 		Consumer: Consumer{
-			quit:      quit,
-			waitGroup: &sync.WaitGroup{},
+			Quit:      quit,
+			WaitGroup: &sync.WaitGroup{},
 		},
 		urls:  urls,
 		data:  data,
 		rules: rules,
 	}
-	c.waitGroup.Add(1)
+	c.WaitGroup.Add(1)
 	return c
 }
 
 /* Consumption Loop */
 func (consumer *URLConsumer) Consume() {
-	defer consumer.waitGroup.Done()
+	defer consumer.WaitGroup.Done()
 	for {
 		select {
-		case <-consumer.quit:
+		case <-consumer.Quit:
 			log.Println("url onsumer received the quit signal")
 			break
 		case urlData := <-consumer.urls:

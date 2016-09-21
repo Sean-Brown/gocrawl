@@ -7,10 +7,10 @@ type iConsumer interface {
 }
 
 type Consumer struct {
-	/* implement the "Consumer" interface */
+	/* this struct implement the "Consumer" interfaces */
 	iConsumer
 	/* channel to tell the consumer when to quit */
-	quit chan int
+	Quit chan int
 	/* waitGroup to signal to the main service when the consumer thread has stopped */
-	waitGroup *sync.WaitGroup
+	WaitGroup *sync.WaitGroup
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"sync"
+	"github.com/Sean-Brown/gocrawl/config"
 )
 
 type DataConsumer struct {
@@ -13,35 +14,35 @@ type DataConsumer struct {
 	/* the channel of data that the consumer will parse */
 	data chan DataCollection
 	/* the rules for parsing the DOM */
-	rules []DataParsingRule
+	rules []config.DataParsingRule
 	/* a dependency-injected data storage object to persist the data */
 	storage DataStorage
 }
 
 /* Make a new Data consumer */
-func NewDataConsumer(data chan DataCollection, quit chan int, rules []DataParsingRule, storage DataStorage) *DataConsumer {
+func NewDataConsumer(data chan DataCollection, quit chan int, rules []config.DataParsingRule, storage DataStorage) *DataConsumer {
 	if rules == nil {
-		rules = []DataParsingRule{}
+		rules = []config.DataParsingRule{}
 	}
 	c := &DataConsumer{
 		Consumer: Consumer{
-			quit:      quit,
-			waitGroup: &sync.WaitGroup{},
+			Quit:      quit,
+			WaitGroup: &sync.WaitGroup{},
 		},
 		data:    data,
 		rules:   rules,
 		storage: storage,
 	}
-	c.waitGroup.Add(1)
+	c.WaitGroup.Add(1)
 	return c
 }
 
 /* Consumption Loop */
 func (consumer *DataConsumer) Consume() {
-	defer consumer.waitGroup.Done()
+	defer consumer.WaitGroup.Done()
 	for {
 		select {
-		case <-consumer.quit:
+		case <-consumer.Quit:
 			log.Println("data consumer received the quit signal")
 			break
 		case data := <-consumer.data:
@@ -64,7 +65,7 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 			log.Println("Matched <", rule.UrlMatch, "> to ", data.url)
 			data.dom.Find(rule.DataSelector).Each(func(_ int, sel *goquery.Selection) {
 				/* store the data */
-				consumer.storage.Store(sel.Text())
+				consumer.storage.Store(data.url, sel.Text())
 			})
 		}
 	}

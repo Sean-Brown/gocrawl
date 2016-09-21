@@ -1,4 +1,4 @@
-package gocrawl
+package config
 
 import (
 	"os"
@@ -15,7 +15,7 @@ var validJSONConfig = []byte(
 		"sameDomain": true,
 		"depth": 10
 	},
-	"dataParsingRules": [
+	"config.DataParsingRules": [
 		{
 			"urlMatch": "www.abc.com/pageA",
 			"dataSelector": "div.content > p"
@@ -27,7 +27,7 @@ var validJSONConfig = []byte(
 	]
 	}`)
 
-/* The valid JSON config but in lower-case */
+/* The valid JSON cmd but in lower-case */
 var lowerJSONConfig = []byte(
 	`{
 	"starturl": "www.abc.com",
@@ -35,7 +35,7 @@ var lowerJSONConfig = []byte(
 		"sameDomain": true,
 		"depth": 10
 	},
-	"dataparsingrules": [
+	"config.DataParsingRules": [
 		{
 			"urlmatch": "www.abc.com/pageA",
 			"dataselector": "div.content > p"
