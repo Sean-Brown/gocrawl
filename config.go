@@ -17,7 +17,7 @@ type Config struct {
 /* Rules for parsing urls */
 type URLParsingRules struct {
 	SameDomain bool
-	Depth int
+	MaxDepth   int
 }
 
 /* rules for parsing data from the DOM */
@@ -33,8 +33,8 @@ func NewURLParsingRules() URLParsingRules {
 	return URLParsingRules{SameDomain: true}
 }
 /* Initialize URL Parsing rules defined by the user */
-func InitURLParsingRules(sameDomain bool) URLParsingRules {
-	return URLParsingRules{SameDomain: sameDomain}
+func InitURLParsingRules(sameDomain bool, maxDepth int) URLParsingRules {
+	return URLParsingRules{SameDomain: sameDomain, MaxDepth:maxDepth}
 }
 
 func ReadConfig(path string) Config {
