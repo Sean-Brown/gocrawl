@@ -17,6 +17,7 @@ type Config struct {
 /* Rules for parsing urls */
 type URLParsingRules struct {
 	SameDomain bool
+	Depth int
 }
 
 /* rules for parsing data from the DOM */
