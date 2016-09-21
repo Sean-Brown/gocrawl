@@ -13,7 +13,7 @@ type URLConsumer struct {
 	/* Compose with the Consumer struct */
 	Consumer
 	/* channel of urls (and their corresponding depth) that the url consumer consumes */
-	urls chan UrlData
+	urls chan URLData
 	/* the channel of data that will be parsed by a data consumer */
 	data chan DataCollection
 	/* the parsing rules */
