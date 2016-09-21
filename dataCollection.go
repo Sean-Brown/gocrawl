@@ -14,6 +14,6 @@ type DataCollection struct {
 	dom *goquery.Document
 }
 
-func Init(url string, dom *goquery.Document) DataCollection {
+func InitDataCollection(url string, dom *goquery.Document) DataCollection {
 	return DataCollection{url:url, fetched:time.Now().UTC(), dom:dom}
 }
