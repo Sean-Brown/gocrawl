@@ -1,10 +1,10 @@
 package gocrawl
 
-type UrlData struct {
+type URLData struct {
 	url string
 	depth int
 }
 
-func InitUrlData(url string, depth int) UrlData {
-	return UrlData{url:url, depth:depth}
+func InitUrlData(url string, depth int) URLData {
+	return URLData{url:url, depth:depth}
 }

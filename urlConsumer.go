@@ -12,9 +12,9 @@ import (
 type URLConsumer struct {
 	/* Compose with the Consumer struct */
 	Consumer
-	/* channel of strings that the consumer consumes */
-	urls chan string
-	/* the channel of data that will be parsed by a parser */
+	/* channel of urls (and their corresponding depth) that the url consumer consumes */
+	urls chan UrlData
+	/* the channel of data that will be parsed by a data consumer */
 	data chan DataCollection
 	/* the parsing rules */
 	rules URLParsingRules
