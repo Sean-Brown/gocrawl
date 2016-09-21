@@ -18,6 +18,8 @@ type URLConsumer struct {
 	data chan DataCollection
 	/* the parsing rules */
 	rules URLParsingRules
+	/* a store of urls already crawled */
+	crawled map[string]bool
 }
 /* Make a new URL consumer */
 func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, rules URLParsingRules) *URLConsumer {
@@ -48,7 +50,7 @@ func (consumer *URLConsumer) Consume() {
 			doc, err := goquery.NewDocument(urlData.url)
 			if err != nil {
 				log.Println(err)
-			} else if urlData.depth < consumer.rules.MaxDepth {
+			} else if urlData.depth < consumer.rules.MaxDepth && !consumer.crawled[urlData.url] {
 				/* consume the document in a separate thread */
 				go consumer.consume(doc, urlData.depth + 1)
 			}
