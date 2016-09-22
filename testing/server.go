@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func Serve(wait *sync.WaitGroup, quit chan int) {
+func Serve(wait *sync.WaitGroup, quit chan int, ports chan int) {
 	// The number of servers
 	const numServers = 4
 	// A channel that will indicate to the servers to quit
@@ -19,10 +19,10 @@ func Serve(wait *sync.WaitGroup, quit chan int) {
 	defer wait.Done()
 	// Create a wait mechanism for the servers and begin serving
 	subWait := sync.WaitGroup{}
-	serveAndWait("hosta", subQuit, &subWait)
-	serveAndWait("hostb", subQuit, &subWait)
-	serveAndWait("hostc", subQuit, &subWait)
-	serveAndWait("hostd", subQuit, &subWait)
+	serveAndWait("hosta", subQuit, &subWait, ports)
+	serveAndWait("hostb", subQuit, &subWait, ports)
+	serveAndWait("hostc", subQuit, &subWait, ports)
+	serveAndWait("hostd", subQuit, &subWait, ports)
 	/* wait for a quit signal */
 	log.Println("Waiting for quit signal")
 	<-quit
@@ -38,13 +38,13 @@ func Serve(wait *sync.WaitGroup, quit chan int) {
 	log.Println("Done waiting for server threads")
 }
 
-func serveAndWait(host string, quit chan int, wait *sync.WaitGroup) {
+func serveAndWait(host string, quit chan int, wait *sync.WaitGroup, ports chan int) {
 	// Increase the wait delta
 	wait.Add(1)
 	// Serve on the host in a separate go routine
 	go func() {
 		defer wait.Done()
-		serve(host, quit)
+		serve(host, quit, ports)
 	}()
 }
 
@@ -69,7 +69,7 @@ func getStoppableListener(host string) (*stoppableListener.StoppableListener, in
 	return stoppable, port
 }
 
-func serve(host string, quit chan int) {
+func serve(host string, quit chan int, ports chan int) {
 	// Get a stoppable HTTP listener and the port the listener is listening on
 	listener, port := getStoppableListener(host)
 	var wait sync.WaitGroup
@@ -77,6 +77,7 @@ func serve(host string, quit chan int) {
 	// Serve the files for that host in a separate go routine
 	go func() {
 		defer wait.Done()
+		ports <- port
 		http.Serve(listener, http.FileServer(http.Dir(fmt.Sprintf("./%s", host))))
 	}()
 	log.Printf("Host %s listening on port %d\n", host, port)

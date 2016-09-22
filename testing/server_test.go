@@ -11,7 +11,8 @@ import (
 func TestServe(t *testing.T) {
 	quit := make(chan int)
 	wait := sync.WaitGroup{}
-	go Serve(&wait, quit)
+	ports := make(chan int, 4)
+	go Serve(&wait, quit, ports)
 	/* channel to receive OS interrupts on */
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
