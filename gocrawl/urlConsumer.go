@@ -2,11 +2,11 @@ package gocrawl
 
 import (
 	"github.com/PuerkitoBio/goquery"
+	"github.com/Sean-Brown/gocrawl/config"
 	"github.com/bobesa/go-domain-util/domainutil"
 	"log"
 	"strings"
 	"sync"
-	"github.com/Sean-Brown/gocrawl/config"
 )
 
 /* The URL Consumer */
@@ -48,14 +48,14 @@ loop:
 			log.Println("url onsumer received the quit signal")
 			break loop
 		case urlData := <-consumer.urls:
-			log.Println("url consumer consuming: ", urlData.url)
+			log.Println("url consumer consuming: ", urlData.URL)
 			/* Download the DOM */
-			doc, err := goquery.NewDocument(urlData.url)
+			doc, err := goquery.NewDocument(urlData.URL)
 			if err != nil {
 				log.Println(err)
-			} else if urlData.depth < consumer.rules.MaxDepth && !consumer.crawled[urlData.url] {
+			} else if urlData.Depth < consumer.rules.MaxDepth && !consumer.crawled[urlData.URL] {
 				/* consume the document in a separate thread */
-				go consumer.consume(doc, urlData.depth+1)
+				go consumer.consume(doc, urlData.Depth+1)
 			}
 		}
 	}
