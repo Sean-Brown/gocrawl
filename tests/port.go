@@ -1,4 +1,4 @@
-package testing
+package tests
 
 // Credit to https://gist.githubusercontent.com/montanaflynn/b59c058ce2adc18f31d6/raw/9e2d2baae4f63e3cd4d781dfc3c743d42df3df05/port.go
 
