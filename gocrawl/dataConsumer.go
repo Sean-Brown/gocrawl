@@ -2,10 +2,10 @@ package gocrawl
 
 import (
 	"github.com/PuerkitoBio/goquery"
+	"github.com/Sean-Brown/gocrawl/config"
 	"log"
 	"regexp"
 	"sync"
-	"github.com/Sean-Brown/gocrawl/config"
 )
 
 type DataConsumer struct {
@@ -47,7 +47,7 @@ loop:
 			log.Println("data consumer received the quit signal")
 			break loop
 		case data := <-consumer.data:
-			log.Println("data consumer received data for ", data.url)
+			log.Println("data consumer received data for ", data.URL)
 			go consumer.consume(data)
 		}
 	}
@@ -58,15 +58,15 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 	/* iterate the DOM-parsing rules */
 	for _, rule := range consumer.rules {
 		/* check if this rule applies to this url */
-		matched, err := regexp.MatchString(rule.UrlMatch, data.url)
+		matched, err := regexp.MatchString(rule.UrlMatch, data.URL)
 		if err != nil {
-			log.Println("Error matching url regex <", rule.UrlMatch, "> with ", data.url)
+			log.Println("Error matching url regex <", rule.UrlMatch, "> with ", data.URL)
 		} else if matched {
 			/* the rule does apply to this url, apply the rule */
-			log.Println("Matched <", rule.UrlMatch, "> to ", data.url)
-			data.dom.Find(rule.DataSelector).Each(func(_ int, sel *goquery.Selection) {
+			log.Println("Matched <", rule.UrlMatch, "> to ", data.URL)
+			data.DOM.Find(rule.DataSelector).Each(func(_ int, sel *goquery.Selection) {
 				/* store the data */
-				consumer.storage.Store(data.url, sel.Text())
+				consumer.storage.Store(data.URL, sel.Text())
 			})
 		}
 	}
