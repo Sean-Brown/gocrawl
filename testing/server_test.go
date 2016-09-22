@@ -1,11 +1,11 @@
 package testing
 
 import (
-	"testing"
+	"log"
 	"os"
 	"os/signal"
-	"log"
 	"sync"
+	"testing"
 )
 
 func TestServe(t *testing.T) {

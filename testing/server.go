@@ -1,11 +1,11 @@
 package testing
 
 import (
-	"net/http"
 	"fmt"
-	"log"
 	"github.com/hydrogen18/stoppableListener"
+	"log"
 	"net"
+	"net/http"
 	"sync"
 )
 
@@ -25,7 +25,7 @@ func Serve(wait *sync.WaitGroup, quit chan int) {
 	serveAndWait("hostd", subQuit, &subWait)
 	/* wait for a quit signal */
 	log.Println("Waiting for quit signal")
-	<- quit
+	<-quit
 	/* received the quit signal, signal the other server threads to quit */
 	log.Println("Received the quit signal")
 	for ix := 0; ix < numServers; ix++ {
@@ -82,7 +82,7 @@ func serve(host string, quit chan int) {
 	log.Printf("Host %s listening on port %d\n", host, port)
 	// Wait for the signal to quit
 	select {
-	case <- quit:
+	case <-quit:
 		log.Printf("Host %s received the quit signal\n", host)
 	}
 	// Received the quit signal, stop the HTTP listener
