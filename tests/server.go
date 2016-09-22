@@ -1,4 +1,4 @@
-package testing
+package tests
 
 import (
 	"fmt"
@@ -9,7 +9,12 @@ import (
 	"sync"
 )
 
-func Serve(wait *sync.WaitGroup, quit chan int, ports chan int) {
+type HostPort struct {
+	Host string
+	Port int
+}
+
+func Serve(wait *sync.WaitGroup, quit chan int, ports chan HostPort) {
 	// The number of servers
 	const numServers = 4
 	// A channel that will indicate to the servers to quit
@@ -38,7 +43,7 @@ func Serve(wait *sync.WaitGroup, quit chan int, ports chan int) {
 	log.Println("Done waiting for server threads")
 }
 
-func serveAndWait(host string, quit chan int, wait *sync.WaitGroup, ports chan int) {
+func serveAndWait(host string, quit chan int, wait *sync.WaitGroup, ports chan HostPort) {
 	// Increase the wait delta
 	wait.Add(1)
 	// Serve on the host in a separate go routine
@@ -69,7 +74,7 @@ func getStoppableListener(host string) (*stoppableListener.StoppableListener, in
 	return stoppable, port
 }
 
-func serve(host string, quit chan int, ports chan int) {
+func serve(host string, quit chan int, ports chan HostPort) {
 	// Get a stoppable HTTP listener and the port the listener is listening on
 	listener, port := getStoppableListener(host)
 	var wait sync.WaitGroup
@@ -77,7 +82,7 @@ func serve(host string, quit chan int, ports chan int) {
 	// Serve the files for that host in a separate go routine
 	go func() {
 		defer wait.Done()
-		ports <- port
+		ports <- HostPort{host, port}
 		http.Serve(listener, http.FileServer(http.Dir(fmt.Sprintf("./%s", host))))
 	}()
 	log.Printf("Host %s listening on port %d\n", host, port)

@@ -1,4 +1,4 @@
-package testing
+package tests
 
 import (
 	"log"
@@ -11,7 +11,7 @@ import (
 func TestServe(t *testing.T) {
 	quit := make(chan int)
 	wait := sync.WaitGroup{}
-	ports := make(chan int, 4)
+	ports := make(chan HostPort, 4)
 	go Serve(&wait, quit, ports)
 	/* channel to receive OS interrupts on */
 	sig := make(chan os.Signal, 1)
