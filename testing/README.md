@@ -1,6 +1,15 @@
-# Testing the gocrawler locally
-The idea is to have the gocrawler be testable from end-to-end but not 
-have to go out to the internet for data. This folder will allow us to
-setup an http server that will serve pre-canned web pages that the 
-crawler will crawl. This will allow integration/system testing in a more
-well-defined manner.
+# Acknowledgement
+The test data originates from [PuerkitoBio/gocrawl](https://github.com/PuerkitoBio/gocrawl)
+
+To test serving these pages through localhost, add to the hosts file
+* Windows - C:\Windows\system32\drivers\etc\hosts
+* Linux - /etc/hosts
+
+The testing directory has hosta, hostb, hostc, hostd with files to serve.
+Edit the hosts file, for example, on Windows add these lines to indicate to Windows
+that we want requests to localhost (127.0.0.1) to go to the host (e.g. hosta):
+
+>127.0.0.1	hosta
+>127.0.0.1	hostb
+>127.0.0.1	hostc
+>127.0.0.1	hostd
