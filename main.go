@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
+	"github.com/Sean-Brown/gocrawl/config"
+	"github.com/Sean-Brown/gocrawl/gocrawl"
 	"log"
 	"os"
 	"os/signal"
-	"github.com/Sean-Brown/gocrawl/gocrawl"
-	"github.com/Sean-Brown/gocrawl/config"
 )
 
 var configPath = flag.String("cmd", "", "The path to the configuration file")

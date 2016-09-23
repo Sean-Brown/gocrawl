@@ -1,73 +1,52 @@
 package tests
 
 import (
-	"fmt"
 	"github.com/mholt/caddy"
+	_ "github.com/mholt/caddy/caddyhttp/browse"
+	_ "github.com/mholt/caddy/caddyhttp/httpserver"
+	_ "github.com/mholt/caddy/caddyhttp/root"
 	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"sync"
 )
 
 func CaddyServe(wait *sync.WaitGroup, quit chan int) {
 	wait.Add(1)
 	defer wait.Done()
-	defer removeCaddyfile()
-	// Start the server
+	// Create the server instance
 	instance := serve2()
-	// Wait for the kill signal
+	// Start the server in a separate go-routine
+	go func() {
+		// Wait for requests
+		instance.Wait()
+	}()
 	<-quit
+	// Got a quit signal, stop waiting for requests
 	instance.Stop()
 }
 
-func removeCaddyfile() {
-	// Remove the Caddyfile
-	caddyfilePath := getCaddyfilePath()
-	err := os.Remove(caddyfilePath)
-	if err != nil {
-		log.Println("Failed to remove the Caddyfile at ", caddyfilePath)
-	}
-}
-func getCaddyfilePath() string {
-	// Copy the Caddyfile to the Caddy installation directory
-	caddyPath, err := exec.LookPath("caddy")
-	if err != nil {
-		log.Fatal("unable to find the Caddy installation directory")
-	}
-	caddyDir := filepath.Dir(caddyPath)
-	if !os.IsPathSeparator(caddyDir[len(caddyDir)-1]) {
-		caddyDir = caddyDir + string(os.PathSeparator)
-	}
-	return fmt.Sprintf("%sCaddyfile", caddyDir)
-}
-
 func loadCaddyfile() caddy.Input {
-	// Copy the Caddyfile to the Caddy installation directory
-	removeCaddyfile()
-	caddyfilePath := getCaddyfilePath()
-	err := os.Link("Caddyfile", caddyfilePath)
+	// Get a handle to the Caddyfile
+	file, err := os.Open("Caddyfile")
 	if err != nil {
-		log.Fatal("Failed to copy the Caddfyfile to ", caddyfilePath)
+		log.Fatal(err)
 	}
-	// Load the Caddyfile
-	caddyfile, err := caddy.LoadCaddyfile("http")
+	// Pipe the Caddyfile into Caddy
+	caddyfile, err := caddy.CaddyfileFromPipe(file, "http")
 	if err != nil {
-		log.Fatal("Failed to load the Caddyfile")
+		log.Fatal(err)
 	}
 	return caddyfile
 }
 
 func serve2() *caddy.Instance {
 	caddy.AppName = "gocrawl-tests"
-	// Open the caddy file
+	// Load the caddy file
 	caddyfile := loadCaddyfile()
 	// Start the server
 	instance, err := caddy.Start(caddyfile)
 	if err != nil {
 		log.Fatal("Unable to start the caddy server: ", err)
 	}
-	// Wait for requests
-	instance.Wait()
 	return instance
 }

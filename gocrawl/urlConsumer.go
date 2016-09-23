@@ -1,6 +1,7 @@
 package gocrawl
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Sean-Brown/gocrawl/config"
 	"github.com/bobesa/go-domain-util/domainutil"
@@ -72,10 +73,25 @@ func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 
 /* Parse and enqueue the links from the document */
 func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
-	domain := domainutil.Domain(doc.Url.String())
+	domain := domainutil.Domain(doc.Url.Host)
+	if len(domain) == 0 {
+		// Assume we're crawling localhost
+		log.Println("no domain, we must be on localhost!")
+		domain = doc.Url.Host
+	}
+	log.Println("domain = ", domain)
 	doc.Find(a).Each(func(_ int, sel *goquery.Selection) {
 		href, exists := sel.Attr(href)
 		if exists {
+			/* if the href has no domain, add the current domain */
+			log.Println("Found href ", href)
+			if strings.Index(href, "http") != 0 {
+				if strings.HasPrefix(href, "/") {
+					strings.TrimPrefix(href, "/")
+				}
+				href = fmt.Sprintf("http://%s/%s", domain, href)
+				log.Println("Modified href to ", href)
+			}
 			/* there is an href attribute, try adding it to the urls channel */
 			if consumer.rules.SameDomain {
 				/* check that the domains are equal */
