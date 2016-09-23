@@ -1,0 +1,19 @@
+http://hosta:2015 {
+    root hosta
+    browse /
+}
+
+http://hostb:2015 {
+    root hostb
+    browse /
+}
+
+http://hostc:2015 {
+    root hostc
+    browse /
+}
+
+http://hostd:2015 {
+    root hostd
+    browse /
+}
