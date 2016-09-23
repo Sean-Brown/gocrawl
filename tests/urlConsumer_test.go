@@ -23,7 +23,7 @@ func TestConsumesAllURLS(t *testing.T) {
 	signal.Notify(sig, os.Interrupt)
 
 	/* create a dummy goquery document to get data from a page */
-	site := fmt.Sprintf("http://%s:%d", "hosta", "2015")
+	site := fmt.Sprintf("http://%s:%d", "hosta", 2015)
 	log.Println("Creating document for site ", site)
 	doc, err := goquery.NewDocument(site)
 	if err != nil {
