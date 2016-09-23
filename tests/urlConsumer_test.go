@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -23,8 +24,16 @@ func TestConsumesAllURLS(t *testing.T) {
 	log.Println("Creating document for site ", site)
 	doc, err := goquery.NewDocument(site)
 	if err != nil {
-		log.Fatalf("Unable to create a new document for %s\n", site)
+		log.Fatal("Unable to create a new document for ", site)
 	}
+	resp, err := http.Get(site)
+	if err != nil {
+		log.Fatal("Failed to get ", site)
+	}
+	log.Println(resp.StatusCode)
+	var body []byte
+	resp.Body.Read(body)
+	log.Println(string(body))
 	log.Println(doc.Text())
 
 	/* Wait until the program receives an interrupt */
