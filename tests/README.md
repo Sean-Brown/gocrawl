@@ -13,3 +13,6 @@ that we want requests to localhost (127.0.0.1) to go to the host (e.g. hosta):
 >127.0.0.1	hostb  
 >127.0.0.1	hostc  
 >127.0.0.1	hostd  
+
+NOTE: this will not work behind a corporate proxy (or at least I need to figure out
+how to configure it for a corporate proxy)
