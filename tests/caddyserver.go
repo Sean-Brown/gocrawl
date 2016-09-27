@@ -14,7 +14,7 @@ func CaddyServe(wait *sync.WaitGroup, quit chan int) {
 	wait.Add(1)
 	defer wait.Done()
 	// Create the server instance
-	instance := serve2()
+	instance := serve()
 	// Start the server in a separate go-routine
 	go func() {
 		// Wait for requests
@@ -39,7 +39,7 @@ func loadCaddyfile() caddy.Input {
 	return caddyfile
 }
 
-func serve2() *caddy.Instance {
+func serve() *caddy.Instance {
 	caddy.AppName = "gocrawl-tests"
 	// Load the caddy file
 	caddyfile := loadCaddyfile()
