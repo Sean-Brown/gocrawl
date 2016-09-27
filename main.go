@@ -9,7 +9,7 @@ import (
 	"os/signal"
 )
 
-var configPath = flag.String("cmd", "", "The path to the configuration file")
+var configPath = flag.String("conf", "", "The path to the configuration file")
 
 func main() {
 	/* *** Setup *** */
