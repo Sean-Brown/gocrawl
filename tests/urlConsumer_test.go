@@ -8,11 +8,12 @@ import (
 	"testing"
 	"github.com/Sean-Brown/gocrawl/gocrawl"
 	"github.com/Sean-Brown/gocrawl/config"
+	"strings"
 )
 
-func getConfig(host string, sameDomain bool, depth int, dataSelector string) config.Config {
+func getConfig(host string, page string, sameDomain bool, depth int, dataSelector string) config.Config {
 	return config.Config{
-		StartUrl: fmt.Sprintf("http://%s:%d/page1.html", host, 2015),
+		StartUrl: fmt.Sprintf("http://%s:%d/%s.html", host, 2015, page),
 		UrlParsingRules: config.CreateURLParsingRules(sameDomain, depth),
 		DataParsingRules: []config.DataParsingRule{
 			{
@@ -60,21 +61,26 @@ func endTest(quit chan int, wait *sync.WaitGroup) {
 	fmt.Println("Done waiting, Goodbye!")
 }
 
-func Test_HostA_SameDomain_Depth1(t *testing.T) {
+func dataAreEqual(actual string, expected string) bool {
+	return strings.Compare(actual, expected) == 0
+}
+
+func Test_HostA_Page1_SameDomain_Depth1(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
 		"hosta",
+		"page1",
 		true,
 		1,
-		"p#data, div#data, div#ultra-cool p.data",
+		"p#data",
 	))
 
 	/* assert that we got the data we expect to */
 	ds := crawler.GetDS()
 	data := ds.Get("http://hosta:2015/page1.html")
-	fmt.Println(data)
-	if data == "" {
-		t.Fatal("Should have had hosta page1 data")
+	expected := "Page 1 Data"
+	if !dataAreEqual(data, expected) {
+		t.Fatal(data, " != ", expected)
 	}
 
 	/* end the test */
