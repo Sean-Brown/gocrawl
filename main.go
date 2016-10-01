@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/Sean-Brown/gocrawl/config"
 	"github.com/Sean-Brown/gocrawl/gocrawl"
-	"log"
 	"os"
 	"os/signal"
 )
@@ -34,7 +34,7 @@ func main() {
 
 	/* *** Wait until the program receives an interrupt *** */
 	interrupt := <-sig
-	log.Println(interrupt)
+	fmt.Println(interrupt)
 	/* signal the threads to quit */
 	quit <- 1
 	/* wait for the threads to exit */

@@ -5,7 +5,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Sean-Brown/gocrawl/config"
 	"github.com/bobesa/go-domain-util/domainutil"
-	"log"
 	"strings"
 	"sync"
 )
@@ -46,15 +45,16 @@ loop:
 	for {
 		select {
 		case <-consumer.Quit:
-			log.Println("url onsumer received the quit signal")
+			fmt.Println("url onsumer received the quit signal")
 			break loop
 		case urlData := <-consumer.urls:
-			log.Println("url consumer consuming: ", urlData.URL)
+			fmt.Println("url consumer consuming: ", urlData.URL)
 			/* Download the DOM */
 			doc, err := goquery.NewDocument(urlData.URL)
 			if err != nil {
-				log.Println(err)
+				fmt.Println(err)
 			} else if urlData.Depth < consumer.rules.MaxDepth && !consumer.crawled[urlData.URL] {
+				fmt.Println("parsing ", urlData.URL)
 				/* consume the document in a separate thread */
 				go consumer.consume(doc, urlData.Depth+1)
 			}
@@ -76,31 +76,33 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 	domain := domainutil.Domain(doc.Url.Host)
 	if len(domain) == 0 {
 		// Assume we're crawling localhost
-		log.Println("no domain, we must be on localhost!")
+		fmt.Println("no domain, we must be on localhost!")
 		domain = doc.Url.Host
 	}
-	log.Println("domain = ", domain)
+	fmt.Println("domain = ", domain)
 	doc.Find(a).Each(func(_ int, sel *goquery.Selection) {
 		href, exists := sel.Attr(href)
 		if exists {
 			/* if the href has no domain, add the current domain */
-			log.Println("Found href ", href)
+			fmt.Println("Found href ", href)
 			if strings.Index(href, "http") != 0 {
 				if strings.HasPrefix(href, "/") {
-					strings.TrimPrefix(href, "/")
+					href = strings.TrimPrefix(href, "/")
 				}
 				href = fmt.Sprintf("http://%s/%s", domain, href)
-				log.Println("Modified href to ", href)
+				fmt.Println("Modified href to ", href)
 			}
 			/* there is an href attribute, try adding it to the urls channel */
 			if consumer.rules.SameDomain {
 				/* check that the domains are equal */
 				if strings.EqualFold(domain, domainutil.Domain(href)) {
 					/* the domains are equal, enqueue the href */
+					fmt.Println("adding href ", href)
 					consumer.urls <- InitURLData(href, depth)
 				}
 			} else {
 				/* enqueue the href without checking the domain */
+				fmt.Println("adding href ", href)
 				consumer.urls <- InitURLData(href, depth)
 			}
 		}

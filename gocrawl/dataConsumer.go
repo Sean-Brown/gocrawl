@@ -3,9 +3,9 @@ package gocrawl
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Sean-Brown/gocrawl/config"
-	"log"
 	"regexp"
 	"sync"
+	"fmt"
 )
 
 type DataConsumer struct {
@@ -44,10 +44,10 @@ loop:
 	for {
 		select {
 		case <-consumer.Quit:
-			log.Println("data consumer received the quit signal")
+			fmt.Println("data consumer received the quit signal")
 			break loop
 		case data := <-consumer.data:
-			log.Println("data consumer received data for ", data.URL)
+			fmt.Println("data consumer received data for ", data.URL)
 			go consumer.consume(data)
 		}
 	}
@@ -60,12 +60,13 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 		/* check if this rule applies to this url */
 		matched, err := regexp.MatchString(rule.UrlMatch, data.URL)
 		if err != nil {
-			log.Println("Error matching url regex <", rule.UrlMatch, "> with ", data.URL)
+			fmt.Println("Error matching url regex <", rule.UrlMatch, "> with ", data.URL)
 		} else if matched {
 			/* the rule does apply to this url, apply the rule */
-			log.Println("Matched <", rule.UrlMatch, "> to ", data.URL)
+			fmt.Println("Matched <", rule.UrlMatch, "> to ", data.URL)
 			data.DOM.Find(rule.DataSelector).Each(func(_ int, sel *goquery.Selection) {
 				/* store the data */
+				fmt.Println("Storing data ", sel.Text(), " for url ", data.URL)
 				consumer.storage.Store(data.URL, sel.Text())
 			})
 		}

@@ -2,13 +2,12 @@ package tests
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"testing"
+	"github.com/Sean-Brown/gocrawl/gocrawl"
+	"github.com/Sean-Brown/gocrawl/config"
 )
 
 func TestConsumesAllURLS(t *testing.T) {
@@ -19,31 +18,42 @@ func TestConsumesAllURLS(t *testing.T) {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 
-	/* create a dummy goquery document to get data from a page */
-	site := fmt.Sprintf("http://%s:%d", "hosta", 2015)
-	log.Println("Creating document for site ", site)
-	doc, err := goquery.NewDocument(site)
-	if err != nil {
-		log.Fatal("Unable to create a new document for ", site)
+	/* create the gocrawler */
+	gc := gocrawl.NewGoCrawl()
+	crawlConfig := config.Config {
+		StartUrl: fmt.Sprintf("http://%s:%d/page1.html", "hosta", 2015),
+		UrlParsingRules: config.CreateURLParsingRules(true, 1),
+		DataParsingRules: []config.DataParsingRule{
+			{
+				UrlMatch:"host.*",
+				DataSelector:"p#data, div#data, div#ultra-cool p.data",
+			},
+		},
 	}
-	resp, err := http.Get(site)
-	if err != nil {
-		log.Fatal("Failed to get ", site)
+	/* start the crawler and wait for it to finish or for an OS interrupt */
+	done := make(chan int, 1)
+	go gc.Crawl(crawlConfig, quit, done)
+loop:
+	for {
+		select {
+		case interrupt := <-sig:
+			fmt.Println(interrupt)
+			break loop
+		case <-done:
+			fmt.Println("crawl completed")
+			break loop
+		}
 	}
-	log.Println(resp.StatusCode)
-	var body []byte
-	resp.Body.Read(body)
-	log.Println(string(body))
-	log.Println(doc.Text())
 
-	/* Wait until the program receives an interrupt */
-	interrupt := <-sig
-	log.Println(interrupt)
+	ds := gc.GetDS()
+	if ds.Get("http://hosta:2015/page1.html") == "" {
+		t.Fatal("Should have had hosta page1 data")
+	}
+
 	/* Tell the servers to quit */
-	log.Println("Quit the server threads")
-	quit <- 1
+	quit <- 0
 	/* Wait for the servers to quit */
-	log.Println("Wait for the server threads")
+	fmt.Println("Wait for the caddy server threads")
 	wait.Wait()
-	log.Println("Done waiting, Goodbye!")
+	fmt.Println("Done waiting, Goodbye!")
 }

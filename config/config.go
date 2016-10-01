@@ -30,10 +30,13 @@ type DataParsingRule struct {
 
 /* Default URL Parsing rules */
 func NewURLParsingRules() URLParsingRules {
-	return URLParsingRules{SameDomain: true}
+	return URLParsingRules{SameDomain: true, MaxDepth: 1}
+}
+func CreateURLParsingRules(sameDomain bool, maxDepth int) URLParsingRules {
+	return URLParsingRules{SameDomain: sameDomain, MaxDepth: maxDepth}
 }
 func NewDataParsingRules() DataParsingRule {
-	return DataParsingRule{UrlMatch:"*", DataSelector:"*"}
+	return DataParsingRule{UrlMatch:".*", DataSelector:".*"}
 }
 
 /* Initialize URL Parsing rules defined by the user */
