@@ -1,6 +1,8 @@
 # Integration Testing
 
 ## How to test
+
+### Setup
 To test serving these pages through localhost, add to the hosts file
 * Windows - C:\Windows\system32\drivers\etc\hosts
 * Linux - /etc/hosts
@@ -16,6 +18,10 @@ that we want requests to localhost (127.0.0.1) to go to the host (e.g. hosta):
 
 NOTE: this will not work behind a corporate proxy (or at least I need to figure out
 how to configure it for a corporate proxy)
+
+### Testing
+To run the integration tests, open a terminal and type:
+<pre>go test -v github.com/Sean-Brown/gocrawl/tests</pre>
 
 ## Acknowledgement
 The html test data originates from [PuerkitoBio/gocrawl](https://github.com/PuerkitoBio/gocrawl)
