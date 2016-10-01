@@ -26,17 +26,18 @@ func getConfig(host string, sameDomain bool, depth int, dataSelector string) con
 func runTest(crawlConfig config.Config) (gocrawl.GoCrawl, chan int, *sync.WaitGroup) {
 	quit := make(chan int)
 	wait := sync.WaitGroup{}
+	/* start the caddy server */
 	go CaddyServe(&wait, quit)
-	/* channel to receive OS interrupts on */
+
+	/* create a channel to receive OS interrupts on in case the user gets impatient */
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
-
 	/* create the gocrawler */
 	gc := gocrawl.NewGoCrawl()
 	/* start the crawler and wait for it to finish or for an OS interrupt */
 	done := make(chan int, 1)
 	go gc.Crawl(crawlConfig, quit, done)
-	loop:
+loop:
 	for {
 		select {
 		case interrupt := <-sig:
@@ -70,7 +71,9 @@ func Test_HostA_SameDomain_Depth1(t *testing.T) {
 
 	/* assert that we got the data we expect to */
 	ds := crawler.GetDS()
-	if ds.Get("http://hosta:2015/page1.html") == "" {
+	data := ds.Get("http://hosta:2015/page1.html")
+	fmt.Println(data)
+	if data == "" {
 		t.Fatal("Should have had hosta page1 data")
 	}
 
