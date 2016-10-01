@@ -19,7 +19,7 @@ type GoCrawl struct {
 }
 
 func NewGoCrawl() GoCrawl {
-	return GoCrawl{timeout: 3}
+	return GoCrawl{timeout: 2}
 }
 
 func (crawler *GoCrawl) GetDS() DataStorage {
