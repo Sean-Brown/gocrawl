@@ -10,7 +10,20 @@ import (
 	"github.com/Sean-Brown/gocrawl/config"
 )
 
-func TestConsumesAllURLS(t *testing.T) {
+func getConfig(host string, sameDomain bool, depth int, dataSelector string) config.Config {
+	return config.Config{
+		StartUrl: fmt.Sprintf("http://%s:%d/page1.html", host, 2015),
+		UrlParsingRules: config.CreateURLParsingRules(sameDomain, depth),
+		DataParsingRules: []config.DataParsingRule{
+			{
+				UrlMatch:"host.*",
+				DataSelector:dataSelector,
+			},
+		},
+	}
+}
+
+func Test_HostA_SameDomain_Depth1(t *testing.T) {
 	quit := make(chan int)
 	wait := sync.WaitGroup{}
 	go CaddyServe(&wait, quit)
@@ -20,16 +33,7 @@ func TestConsumesAllURLS(t *testing.T) {
 
 	/* create the gocrawler */
 	gc := gocrawl.NewGoCrawl()
-	crawlConfig := config.Config {
-		StartUrl: fmt.Sprintf("http://%s:%d/page1.html", "hosta", 2015),
-		UrlParsingRules: config.CreateURLParsingRules(true, 1),
-		DataParsingRules: []config.DataParsingRule{
-			{
-				UrlMatch:"host.*",
-				DataSelector:"p#data, div#data, div#ultra-cool p.data",
-			},
-		},
-	}
+	crawlConfig := getConfig("hosta", true, 1, "p#data, div#data, div#ultra-cool p.data")
 	/* start the crawler and wait for it to finish or for an OS interrupt */
 	done := make(chan int, 1)
 	go gc.Crawl(crawlConfig, quit, done)
