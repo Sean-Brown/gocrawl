@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"sync"
 	"fmt"
+	"strings"
 )
 
 type DataConsumer struct {
@@ -66,8 +67,9 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 			fmt.Println("Matched <", rule.UrlMatch, "> to ", data.URL)
 			data.DOM.Find(rule.DataSelector).Each(func(_ int, sel *goquery.Selection) {
 				/* store the data */
-				fmt.Println("Storing data ", sel.Text(), " for url ", data.URL)
-				consumer.storage.Store(data.URL, sel.Text())
+				text := strings.TrimSpace(sel.Text())
+				fmt.Println("Storing data ", text, " for url ", data.URL)
+				consumer.storage.Store(data.URL, text)
 			})
 		}
 	}
