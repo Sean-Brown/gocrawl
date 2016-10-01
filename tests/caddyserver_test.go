@@ -7,7 +7,11 @@ import (
 	"testing"
 )
 
-func TestCaddyServe(t *testing.T) {
+/**
+ * This function was here for my early testing of caddy, it requires an interrupt to quit
+ * and therefore doesn't play nice with other automated tests
+ */
+func DISABLED_TestCaddyServe(t *testing.T) {
 	// Start the server
 	quit := make(chan int, 1)
 	wait := sync.WaitGroup{}
