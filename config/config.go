@@ -12,6 +12,7 @@ type Config struct {
 	StartUrl         string
 	UrlParsingRules  URLParsingRules
 	DataParsingRules []DataParsingRule
+	DataStore DataStorage
 }
 
 /* Rules for parsing urls */
