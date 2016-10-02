@@ -45,7 +45,7 @@ loop:
 	for {
 		select {
 		case <-consumer.Quit:
-			fmt.Println("url onsumer received the quit signal")
+			fmt.Println("url consumer received the quit signal")
 			break loop
 		case urlData := <-consumer.urls:
 			fmt.Println("url consumer consuming: ", urlData.URL)
