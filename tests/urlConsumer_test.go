@@ -24,15 +24,30 @@ func getConfig(host string, page string, sameDomain bool, depth int, dataSelecto
 	}
 }
 
-func runTest(crawlConfig config.Config) (gocrawl.GoCrawl, chan int, *sync.WaitGroup) {
-	quit := make(chan int)
-	wait := sync.WaitGroup{}
-	/* start the caddy server */
-	go CaddyServe(&wait, quit)
-
+func runTest(crawlConfig config.Config) (*gocrawl.GoCrawl, chan int, *sync.WaitGroup) {
 	/* create a channel to receive OS interrupts on in case the user gets impatient */
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
+
+	/* start the caddy server */
+	quit := make(chan int)
+	wait := sync.WaitGroup{}
+	ready := make(chan int, 1)
+	go CaddyServe(&wait, quit, ready)
+	/* wait for the server to start serving */
+readyLoop:
+	for {
+		fmt.Println("in the readyLoop")
+		select {
+		case interrupt := <-sig:
+			fmt.Println(interrupt)
+			return nil, quit, &wait
+		case <-ready:
+			fmt.Println("caddyserver running, now crawl")
+			break readyLoop
+		}
+	}
+	fmt.Println("now crawling")
 	/* create the gocrawler */
 	gc := gocrawl.NewGoCrawl()
 	/* start the crawler and wait for it to finish or for an OS interrupt */
@@ -40,6 +55,7 @@ func runTest(crawlConfig config.Config) (gocrawl.GoCrawl, chan int, *sync.WaitGr
 	go gc.Crawl(crawlConfig, quit, done)
 loop:
 	for {
+		fmt.Println("in the loop")
 		select {
 		case interrupt := <-sig:
 			fmt.Println(interrupt)
@@ -49,7 +65,7 @@ loop:
 			break loop
 		}
 	}
-	return gc, quit, &wait
+	return &gc, quit, &wait
 }
 
 func endTest(quit chan int, wait *sync.WaitGroup) {
@@ -75,12 +91,14 @@ func Test_HostA_Page1_SameDomain_Depth1(t *testing.T) {
 		"p#data",
 	))
 
-	/* assert that we got the data we expect to */
-	ds := crawler.GetDS()
-	data := ds.Get("http://hosta:2015/page1.html")
-	expected := "Page 1 Data"
-	if !dataAreEqual(data, expected) {
-		t.Fatal(data, " != ", expected)
+	if crawler != nil {
+		/* assert that we got the data we expect to */
+		ds := (*crawler).GetDS()
+		data := ds.Get("http://hosta:2015/page1.html")
+		expected := "Page 1 Data"
+		if !dataAreEqual(data, expected) {
+			t.Fatal(data, " != ", expected)
+		}
 	}
 
 	/* end the test */
