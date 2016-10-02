@@ -15,7 +15,8 @@ func DISABLED_TestCaddyServe(t *testing.T) {
 	// Start the server
 	quit := make(chan int, 1)
 	wait := sync.WaitGroup{}
-	go CaddyServe(&wait, quit)
+	ready := make(chan int, 1)
+	go CaddyServe(&wait, quit, ready)
 	// Wait for an OS interrupt
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
