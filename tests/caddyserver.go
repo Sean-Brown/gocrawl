@@ -10,11 +10,12 @@ import (
 	"sync"
 )
 
-func CaddyServe(wait *sync.WaitGroup, quit chan int) {
+func CaddyServe(wait *sync.WaitGroup, quit chan int, ready chan int) {
 	wait.Add(1)
 	defer wait.Done()
 	// Create the server instance
 	instance := serve()
+	ready <- 1
 	// Start the server in a separate go-routine
 	go func() {
 		// Wait for requests
