@@ -121,7 +121,7 @@ func expectData(t *testing.T, crawler *gocrawl.GoCrawl, url string, expected str
 	assert.True(t, dataAreEqual(data, expected), fmt.Sprintf("%s != %s", data, expected))
 }
 
-func DISABLED_Test_HostA_Page1_SameDomain_Depth1(t *testing.T) {
+func Test_HostA_Page1_SameDomain_Depth1(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
 		true,
@@ -162,7 +162,6 @@ func Test_HostA_Page1_SameDomain_Depth2(t *testing.T) {
 	/* end the test */
 	endTest(quit, wait)
 }
-
 func Test_DoesNotCrawlSamePageTwice(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
@@ -177,6 +176,30 @@ func Test_DoesNotCrawlSamePageTwice(t *testing.T) {
 	if crawler != nil {
 		/* assert that hosta was only crawled once */
 		assert.Equal(t, crawler.GetDS().Get(formatPage("hosta", "page1")), "1")
+	}
+
+	/* end the test */
+	endTest(quit, wait)
+}
+
+func Test_HostA_Page1_NotSameDomain_Depth2(t *testing.T) {
+	/* run the test */
+	crawler, quit, wait := runTest(getConfig(
+		true,
+		"hosta",
+		"page1",
+		false,
+		2,
+		[]string{"p#data", "div#data", "div#ultra-cool p.data", "p span", "div h1"},
+	))
+
+	if crawler != nil {
+		/* assert that we got the data we expect to */
+		expectData(t, crawler, formatPage("hosta", "page1"), "Page 1 Data")
+		expectData(t, crawler, formatPage("hosta", "page2"), "Page 2 Data")
+		expectData(t, crawler, formatPage("hosta", "page3"), "Page 3 Data")
+		expectData(t, crawler, formatPage("hostb", "page1"), "Page 1 Data")
+		expectData(t, crawler, formatPage("hostc", "page3"), "Page 3 Data")
 	}
 
 	/* end the test */
