@@ -1,4 +1,4 @@
-package gocrawl
+package config
 
 type DataStorage interface {
 	/** Store data associated with a specific url in the data store */
