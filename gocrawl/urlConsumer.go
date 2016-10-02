@@ -50,13 +50,13 @@ loop:
 			fmt.Println("url consumer received the quit signal")
 			break loop
 		case urlData := <-consumer.urls:
-			fmt.Println("url consumer consuming: ", urlData.URL)
+			fmt.Println("url consumer consuming:", urlData.URL)
 			/* Download the DOM */
 			doc, err := goquery.NewDocument(urlData.URL)
 			if err != nil {
 				fmt.Println(err)
 			} else if urlData.Depth < consumer.rules.MaxDepth && !consumer.crawled[urlData.URL] {
-				fmt.Println("parsing ", urlData.URL)
+				fmt.Println("parsing", urlData.URL)
 				/* consume the document in a separate thread */
 				go consumer.consume(doc, urlData.Depth+1)
 				/* don't crawl this link again */
@@ -83,12 +83,12 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 		// the domain contains a subdomain, parse out the top-level domain
 		domain = domainutil.Domain(domain)
 	}
-	fmt.Println("domain = ", domain)
+	fmt.Println("domain =", domain)
 	doc.Find(a).Each(func(_ int, sel *goquery.Selection) {
 		href, exists := sel.Attr(href)
 		shouldAdd, href := consumer.shouldAddLink(domain, href)
 		if exists && shouldAdd {
-			fmt.Println("adding href ", href)
+			fmt.Println("adding href", href)
 			consumer.urls <- InitURLData(href, depth)
 		}
 	})
@@ -98,7 +98,7 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 func (consumer *URLConsumer) shouldAddLink(domain string, href string) (bool, string) {
 	shouldAdd := false
 	/* if the parsed href has no domain, add the current domain */
-	fmt.Println("Found href ", href)
+	fmt.Println("Found href", href)
 	if strings.Index(href, "http://") == -1 && strings.Index(href, "www.") == -1 {
 		// There's no "http" or "www." prefix, assume we're on the given domain,
 		// at this point assume href is for a page on the same domain
@@ -107,7 +107,7 @@ func (consumer *URLConsumer) shouldAddLink(domain string, href string) (bool, st
 			href = strings.TrimPrefix(href, "/")
 		}
 		href = fmt.Sprintf("http://%s/%s", domain, href)
-		fmt.Println("Modified href to ", href)
+		fmt.Println("Modified href to", href)
 	}
 	/* see if the href should be added to the urls channel */
 	if consumer.rules.SameDomain {
