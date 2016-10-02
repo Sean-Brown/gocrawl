@@ -12,7 +12,7 @@ type GoCrawl struct {
 	/* The data consumer -- parses the downloaded DOM for data */
 	dataConsumer *DataConsumer
 	/* The data storage */
-	dataStore DataStorage
+	dataStore config.DataStorage
 	/* Timeout -- the time (in seconds) to wait with empty channels, if this time elapses,
 	then the crawler will assume there are no more urls or data left and will thus exit*/
 	timeout int
@@ -22,7 +22,7 @@ func NewGoCrawl() GoCrawl {
 	return GoCrawl{timeout: 2}
 }
 
-func (crawler *GoCrawl) GetDS() DataStorage {
+func (crawler *GoCrawl) GetDS() config.DataStorage {
 	return crawler.dataStore
 }
 
@@ -39,7 +39,7 @@ func (crawler *GoCrawl) Crawl(crawlConfig config.Config, quit chan int, done cha
 	crawler.urlConsumer = NewURLConsumer(urls, data, quit2, crawlConfig.UrlParsingRules);
 	go crawler.urlConsumer.Consume()
 	quit3 := make(chan int)
-	crawler.dataStore = CreateInMemoryDataStore()
+	crawler.dataStore = crawlConfig.DataStore
 	crawler.dataConsumer = NewDataConsumer(data, quit3, crawlConfig.DataParsingRules, crawler.dataStore)
 	go crawler.dataConsumer.Consume()
 

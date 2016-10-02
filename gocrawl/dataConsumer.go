@@ -17,11 +17,11 @@ type DataConsumer struct {
 	/* the rules for parsing the DOM */
 	rules []config.DataParsingRule
 	/* a dependency-injected data storage object to persist the data */
-	storage DataStorage
+	storage config.DataStorage
 }
 
 /* Make a new Data consumer */
-func NewDataConsumer(data chan DataCollection, quit chan int, rules []config.DataParsingRule, storage DataStorage) *DataConsumer {
+func NewDataConsumer(data chan DataCollection, quit chan int, rules []config.DataParsingRule, storage config.DataStorage) *DataConsumer {
 	if rules == nil {
 		rules = []config.DataParsingRule{}
 	}
