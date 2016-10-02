@@ -7,6 +7,7 @@ import (
 	"github.com/bobesa/go-domain-util/domainutil"
 	"strings"
 	"sync"
+	"net/url"
 )
 
 /* The URL Consumer */
@@ -33,6 +34,7 @@ func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, 
 		urls:  urls,
 		data:  data,
 		rules: rules,
+		crawled: make(map[string]bool),
 	}
 	c.WaitGroup.Add(1)
 	return c
@@ -57,6 +59,8 @@ loop:
 				fmt.Println("parsing ", urlData.URL)
 				/* consume the document in a separate thread */
 				go consumer.consume(doc, urlData.Depth+1)
+				/* don't crawl this link again */
+				consumer.crawled[urlData.URL] = true
 			}
 		}
 	}
@@ -73,38 +77,55 @@ func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 
 /* Parse and enqueue the links from the document */
 func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
-	domain := domainutil.Domain(doc.Url.Host)
-	if len(domain) == 0 {
-		// Assume we're crawling localhost
-		fmt.Println("no domain, we must be on localhost!")
-		domain = doc.Url.Host
+	// set the doamin equal to the host in the URL
+	domain := doc.Url.Host
+	if domainutil.HasSubdomain(domain) {
+		// the domain contains a subdomain, parse out the top-level domain
+		domain = domainutil.Domain(domain)
 	}
 	fmt.Println("domain = ", domain)
 	doc.Find(a).Each(func(_ int, sel *goquery.Selection) {
 		href, exists := sel.Attr(href)
-		if exists {
-			/* if the href has no domain, add the current domain */
-			fmt.Println("Found href ", href)
-			if strings.Index(href, "http") != 0 {
-				if strings.HasPrefix(href, "/") {
-					href = strings.TrimPrefix(href, "/")
-				}
-				href = fmt.Sprintf("http://%s/%s", domain, href)
-				fmt.Println("Modified href to ", href)
-			}
-			/* there is an href attribute, try adding it to the urls channel */
-			if consumer.rules.SameDomain {
-				/* check that the domains are equal */
-				if strings.EqualFold(domain, domainutil.Domain(href)) {
-					/* the domains are equal, enqueue the href */
-					fmt.Println("adding href ", href)
-					consumer.urls <- InitURLData(href, depth)
-				}
-			} else {
-				/* enqueue the href without checking the domain */
-				fmt.Println("adding href ", href)
-				consumer.urls <- InitURLData(href, depth)
-			}
+		shouldAdd, href := consumer.shouldAddLink(domain, href)
+		if exists && shouldAdd {
+			fmt.Println("adding href ", href)
+			consumer.urls <- InitURLData(href, depth)
 		}
 	})
+}
+
+/* Add the href if there is no domain restriction or if the href is in the domain, returns a possibly modified href */
+func (consumer *URLConsumer) shouldAddLink(domain string, href string) (bool, string) {
+	shouldAdd := false
+	/* if the parsed href has no domain, add the current domain */
+	fmt.Println("Found href ", href)
+	if strings.Index(href, "http://") == -1 && strings.Index(href, "www.") == -1 {
+		// There's no "http" or "www." prefix, assume we're on the given domain,
+		// at this point assume href is for a page on the same domain
+		if strings.HasPrefix(href, "/") {
+			// cut the leading '/', i.e. href="/page2"
+			href = strings.TrimPrefix(href, "/")
+		}
+		href = fmt.Sprintf("http://%s/%s", domain, href)
+		fmt.Println("Modified href to ", href)
+	}
+	/* see if the href should be added to the urls channel */
+	if consumer.rules.SameDomain {
+		/* check that the domains are equal */
+		// Check if the domains are equal
+		_url, err := url.Parse(href)
+		if err != nil {
+			fmt.Println("error parsing <", href, "> into a url.URL struct")
+		} else if _url.Host == "" && strings.Contains(_url.String(), domain) {
+			// The _url host is empty, so just see if the full path contains the domain
+			shouldAdd = true
+		} else if strings.EqualFold(domain, _url.Host) {
+			/* the domain and _url.Host are equal, enqueue the href */
+			shouldAdd = true
+		}
+	} else {
+		/* enqueue the href without checking the domain */
+		shouldAdd = true
+	}
+	return shouldAdd, href
 }
