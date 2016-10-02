@@ -25,3 +25,53 @@ To run the integration tests, open a terminal and type:
 
 ## Acknowledgement
 The html test data originates from [PuerkitoBio/gocrawl](https://github.com/PuerkitoBio/gocrawl)
+### Page References
+* hosta 
+  * page1
+    * page2
+    * page3
+    * hostb/page1
+  * page2
+    * page1
+    * page3
+    * hostb/page1
+  * page3
+    * page1
+    * hostb/page1
+    * hostc/page2
+  * page4
+    * page5
+    * hostc/page3
+  * page5
+* hostb
+  * page1
+    * page1 (lol, references itself?)
+    * page2
+    * hostc/page1
+  * page2
+    * page1
+    * unknown.html
+    * hosta/page1
+    * hostunknown/page1
+    * pageunlinked.html
+* hostc
+  * page1
+    * page2
+    * hosta/page2
+  * page2
+    * page1
+  * page3
+    * hostd/page1
+* hostd
+  * index
+    * /subdir/page2
+  * page3
+    * localhost:8080/subdir/page1
+  * /subdir
+    * page1
+      * page2
+    * page2
+      * page3 (on the root)
+    * pagea
+      * pageb
+    * pageb
