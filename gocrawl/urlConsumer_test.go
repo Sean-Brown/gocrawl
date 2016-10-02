@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"github.com/Sean-Brown/gocrawl/config"
+	"github.com/stretchr/testify/assert"
+	"fmt"
 )
 
 const urlConsumerDom = `<html>
@@ -23,7 +25,7 @@ const urlConsumerDom = `<html>
 </div>
 </html>`
 
-var _url = &url.URL{Path: "www.a.com/somepage"}
+var _url = &url.URL{Path: "www.a.com/somepage", Host: "a"}
 
 func makeNewDoc(t *testing.T) *goquery.Document {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(urlConsumerDom))
@@ -42,9 +44,7 @@ func initURLConsumer(sameDomain bool) *URLConsumer {
 }
 func assertLinksFound(t *testing.T, urls chan URLData, expected int) {
 	found := len(urls)
-	if found != expected {
-		t.Fatal("Failed to find all the urls. Expected: ", expected, ", Actual: ", found)
-	}
+	assert.Equal(t, found, expected, fmt.Sprintf("Failed to find all the urls. Expected: %d, Actual: %d", expected, found))
 }
 
 func TestParsesAllLinksWhenAllDomainsAreAllowed(t *testing.T) {
