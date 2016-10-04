@@ -22,6 +22,26 @@ type URLConsumer struct {
 	rules config.URLParsingRules
 	/* a store of urls already crawled */
 	crawled map[string]bool
+	// make the 'crawled' make thread-safe
+	mux sync.RWMutex
+}
+
+func (consumer *URLConsumer) addCrawled(url string) {
+	if !consumer.isCrawled(url) {
+		// Set the site to 'crawled' -- obtain a write lock
+		consumer.mux.Lock()
+		consumer.crawled[url] = true
+		consumer.mux.Unlock()
+	}
+}
+
+func (consumer *URLConsumer) isCrawled(url string) bool {
+	var crawled bool
+	// Determine if this url is already set, only use a read lock
+	consumer.mux.RLock()
+	crawled = consumer.crawled[url]
+	consumer.mux.RUnlock()
+	return crawled
 }
 
 /* Make a new URL consumer */
@@ -50,28 +70,39 @@ loop:
 			fmt.Println("url consumer received the quit signal")
 			break loop
 		case urlData := <-consumer.urls:
-			fmt.Println("url consumer consuming:", urlData.URL)
+			// Count this worker as working
+			consumer.IncWorkers()
 			/* Download the DOM */
 			doc, err := goquery.NewDocument(urlData.URL)
 			if err != nil {
 				fmt.Println(err)
-			} else if urlData.Depth < consumer.rules.MaxDepth && !consumer.crawled[urlData.URL] {
-				fmt.Println("parsing", urlData.URL)
-				/* consume the document in a separate thread */
-				go consumer.consume(doc, urlData.Depth+1)
+			} else if urlData.Depth < consumer.rules.MaxDepth && !consumer.isCrawled(urlData.URL) {
+				/* consume the document in a separate thread, increment for that thread */
+				consumer.IncWorkers()
+				go func() {
+					// Defer decrementing the number of workers
+					defer consumer.DecWorkers()
+					fmt.Println("url consumer consuming:", urlData.URL)
+					consumer.consume(doc, urlData.Depth+1)
+				}()
 				/* don't crawl this link again */
-				consumer.crawled[urlData.URL] = true
+				consumer.addCrawled(urlData.URL)
 			}
+			// Uncount this worker
+			consumer.DecWorkers()
 		}
 	}
 }
 
 /* Consume the url */
 func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
-	/* Parse and enqueue the links */
-	consumer.parseLinks(doc, depth)
+	// check that we won't exceed the max depth
+	if (depth + 1) <= consumer.rules.MaxDepth {
+		// the next depth is within the crawl limit, parse and enqueue the links on this page
+		consumer.parseLinks(doc, depth)
+	}
 
-	/* enqueue the data */
+	// enqueue the data
 	consumer.data <- InitDataCollection(doc.Url.String(), doc)
 }
 
@@ -83,22 +114,21 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 		// the domain contains a subdomain, parse out the top-level domain
 		domain = domainutil.Domain(domain)
 	}
-	fmt.Println("domain =", domain)
 	doc.Find(a).Each(func(_ int, sel *goquery.Selection) {
 		href, exists := sel.Attr(href)
-		shouldAdd, href := consumer.shouldAddLink(domain, href)
+		shouldAdd, href := consumer.shouldAddLink(domain, href, depth)
 		if exists && shouldAdd {
-			fmt.Println("adding href", href)
+			fmt.Println("adding href", href, ", depth =", depth)
 			consumer.urls <- InitURLData(href, depth)
 		}
 	})
 }
 
 /* Add the href if there is no domain restriction or if the href is in the domain, returns a possibly modified href */
-func (consumer *URLConsumer) shouldAddLink(domain string, href string) (bool, string) {
+func (consumer *URLConsumer) shouldAddLink(domain string, href string, currentDepth int) (bool, string) {
 	shouldAdd := false
 	/* if the parsed href has no domain, add the current domain */
-	fmt.Println("Found href", href)
+	fmt.Println("URLConsumer found href", href)
 	if strings.Index(href, "http://") == -1 && strings.Index(href, "www.") == -1 {
 		// There's no "http" or "www." prefix, assume we're on the given domain,
 		// at this point assume href is for a page on the same domain
@@ -126,6 +156,10 @@ func (consumer *URLConsumer) shouldAddLink(domain string, href string) (bool, st
 	} else {
 		/* enqueue the href without checking the domain */
 		shouldAdd = true
+	}
+	if shouldAdd {
+		// check that the href hasn't been crawled yet
+		shouldAdd = !consumer.isCrawled(href)
 	}
 	return shouldAdd, href
 }
