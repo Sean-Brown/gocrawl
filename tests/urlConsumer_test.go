@@ -129,12 +129,14 @@ func Test_HostA_Page1_SameDomain_Depth1(t *testing.T) {
 		"page1",
 		true,
 		1,
-		[]string{"p#data"},
+		[]string{"p#data", "div#data", "div#ultra-cool p.data"},
 	))
 
 	if crawler != nil {
 		/* assert that we got the data we expect to */
 		expectData(t, crawler, formatPage("hosta", "page1"), "Page 1 Data")
+		expectData(t, crawler, formatPage("hosta", "page2"), "Page 2 Data")
+		expectData(t, crawler, formatPage("hosta", "page3"), "Page 3 Data")
 	}
 
 	/* end the test */
@@ -195,35 +197,6 @@ func Test_HostA_Page1_NotSameDomain_Depth2(t *testing.T) {
 			"div#data", // hosta/page2
 			"div#ultra-cool p.data", // hosta/page3
 			"div#list ul li", // hostb/page1
-		},
-	))
-
-	if crawler != nil {
-		fmt.Println(crawler.GetDS())
-		/* assert that we got the data we expect to */
-		expectData(t, crawler, formatPage("hosta", "page1"), "Page 1 Data")
-		expectData(t, crawler, formatPage("hosta", "page2"), "Page 2 Data")
-		expectData(t, crawler, formatPage("hosta", "page3"), "Page 3 Data")
-		expectData(t, crawler, formatPage("hostb", "page1"), "Hello World")
-	}
-
-	/* end the test */
-	endTest(quit, wait)
-}
-
-func Test_HostA_Page1_NotSameDomain_Depth3(t *testing.T) {
-	/* run the test */
-	crawler, quit, wait := runTest(getConfig(
-		true,
-		"hosta",
-		"page1",
-		false,
-		3,
-		[]string {
-			"p#data", // hosta/page1
-			"div#data", // hosta/page2
-			"div#ultra-cool p.data", // hosta/page3
-			"div#list ul li", // hostb/page1
 			"h1#important", // hostb/page2
 			"p span", // hostc/page1
 			"div h1", // hostc/page2
@@ -245,3 +218,38 @@ func Test_HostA_Page1_NotSameDomain_Depth3(t *testing.T) {
 	/* end the test */
 	endTest(quit, wait)
 }
+
+//func Test_HostA_Page1_NotSameDomain_Depth3(t *testing.T) {
+//	/* run the test */
+//	crawler, quit, wait := runTest(getConfig(
+//		true,
+//		"hosta",
+//		"page1",
+//		false,
+//		3,
+//		[]string {
+//			"p#data", // hosta/page1
+//			"div#data", // hosta/page2
+//			"div#ultra-cool p.data", // hosta/page3
+//			"div#list ul li", // hostb/page1
+//			"h1#important", // hostb/page2
+//			"p span", // hostc/page1
+//			"div h1", // hostc/page2
+//		},
+//	))
+//
+//	if crawler != nil {
+//		fmt.Println(crawler.GetDS())
+//		/* assert that we got the data we expect to */
+//		expectData(t, crawler, formatPage("hosta", "page1"), "Page 1 Data")
+//		expectData(t, crawler, formatPage("hosta", "page2"), "Page 2 Data")
+//		expectData(t, crawler, formatPage("hosta", "page3"), "Page 3 Data")
+//		expectData(t, crawler, formatPage("hostb", "page1"), "Hello World")
+//		expectData(t, crawler, formatPage("hostb", "page2"), "Page 2B Title")
+//		expectData(t, crawler, formatPage("hostc", "page1"), "Page 1 Data")
+//		expectData(t, crawler, formatPage("hostc", "page2"), "Page 2C Header")
+//	}
+//
+//	/* end the test */
+//	endTest(quit, wait)
+//}
