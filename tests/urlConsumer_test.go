@@ -30,6 +30,69 @@ func NewCountingDS() *CountingDS {
 	return &CountingDS{store: make(map[string]int)}
 }
 
+type HostPageSelData struct {
+	host string
+	page string
+	sel string
+	data string
+}
+const (
+	// Hosts
+	_hosta = "hosta"
+	_hostb = "hostb"
+	_hostc = "hostc"
+	_hostd = "hostd"
+	// Pages
+	_page1 = "page1"
+	_page2 = "page2"
+	_page3 = "page3"
+	_page4 = "page4"
+	_page5 = "page5"
+)
+const (
+	// Hosts
+	hosta = 1 << 0
+	hostb = hosta << 1
+	hostc = hosta << 2
+	hostd = hosta << 3
+	// Pages
+	page1 = hosta << 4
+	page2 = hosta << 5
+	page3 = hosta << 6
+	page4 = hosta << 7
+	page5 = hosta << 8
+	// Combined
+	hap1 = hosta | page1
+	hap2 = hosta | page2
+	hap3 = hosta | page3
+	hbp1 = hostb | page1
+	hbp2 = hostb | page2
+	hcp1 = hostc | page1
+	hcp2 = hostc | page2
+)
+var selectors map[int]string = map[int]string {
+	hap1: "p#data",
+	hap2: "div#data",
+	hap3: "div#ultra-cool p.data",
+
+	hbp1: "div#list ul li",
+	hbp2: "h1#important",
+
+	hcp1: "p span",
+	hcp2: "div h1",
+}
+var data map[int]string = map[int]string {
+	hap1: "Page 1 Data",
+	hap2: "Page 2 Data",
+	hap3: "Page 3 Data",
+
+	hbp1: "Hello World",
+	hbp2: "Page 2B Title",
+
+	hcp1: "Page 1 Data",
+	hcp2: "Page 2C Header",
+}
+
 /**
  Return a string formatted as http://<host>:2015/<page>.html
  */
@@ -125,18 +188,22 @@ func Test_HostA_Page1_SameDomain_Depth1(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
 		true,
-		"hosta",
-		"page1",
+		_hosta,
+		_page1,
 		true,
 		1,
-		[]string{"p#data", "div#data", "div#ultra-cool p.data"},
+		[]string{
+			selectors[hap1],
+			selectors[hap2],
+			selectors[hap3],
+		},
 	))
 
 	if crawler != nil {
 		/* assert that we got the data we expect to */
-		expectData(t, crawler, formatPage("hosta", "page1"), "Page 1 Data")
-		expectData(t, crawler, formatPage("hosta", "page2"), "Page 2 Data")
-		expectData(t, crawler, formatPage("hosta", "page3"), "Page 3 Data")
+		expectData(t, crawler, formatPage(_hosta, _page1), data[hap1])
+		expectData(t, crawler, formatPage(_hosta, _page2), data[hap2])
+		expectData(t, crawler, formatPage(_hosta, _page3), data[hap3])
 	}
 
 	/* end the test */
@@ -147,18 +214,22 @@ func Test_HostA_Page1_SameDomain_Depth2(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
 		true,
-		"hosta",
-		"page1",
+		_hosta,
+		_page1,
 		true,
 		2,
-		[]string{"p#data", "div#data", "div#ultra-cool p.data"},
+		[]string{
+			selectors[hap1],
+			selectors[hap2],
+			selectors[hap3],
+		},
 	))
 
 	if crawler != nil {
 		/* assert that we got the data we expect to */
-		expectData(t, crawler, formatPage("hosta", "page1"), "Page 1 Data")
-		expectData(t, crawler, formatPage("hosta", "page2"), "Page 2 Data")
-		expectData(t, crawler, formatPage("hosta", "page3"), "Page 3 Data")
+		expectData(t, crawler, formatPage(_hosta, _page1), data[hap1])
+		expectData(t, crawler, formatPage(_hosta, _page2), data[hap2])
+		expectData(t, crawler, formatPage(_hosta, _page3), data[hap3])
 	}
 
 	/* end the test */
@@ -168,16 +239,20 @@ func Test_DoesNotCrawlSamePageTwice(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
 		false,
-		"hosta",
-		"page1",
+		_hosta,
+		_page1,
 		true,
 		2,
-		[]string{"p#data", "div#data", "div#ultra-cool p.data"},
+		[]string{
+			selectors[hap1],
+			selectors[hap2],
+			selectors[hap3],
+		},
 	))
 
 	if crawler != nil {
 		/* assert that hosta was only crawled once */
-		assert.Equal(t, crawler.GetDS().Get(formatPage("hosta", "page1")), "1")
+		assert.Equal(t, crawler.GetDS().Get(formatPage(_hosta, _page1)), "1")
 	}
 
 	/* end the test */
@@ -188,31 +263,35 @@ func Test_HostA_Page1_NotSameDomain_Depth2(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
 		true,
-		"hosta",
-		"page1",
+		_hosta,
+		_page1,
 		false,
 		2,
 		[]string {
-			"p#data", // hosta/page1
-			"div#data", // hosta/page2
-			"div#ultra-cool p.data", // hosta/page3
-			"div#list ul li", // hostb/page1
-			"h1#important", // hostb/page2
-			"p span", // hostc/page1
-			"div h1", // hostc/page2
+			selectors[hap1],
+			selectors[hap2],
+			selectors[hap3],
+
+			selectors[hbp1],
+			selectors[hbp2],
+
+			selectors[hcp1],
+			selectors[hcp2],
 		},
 	))
 
 	if crawler != nil {
 		fmt.Println(crawler.GetDS())
 		/* assert that we got the data we expect to */
-		expectData(t, crawler, formatPage("hosta", "page1"), "Page 1 Data")
-		expectData(t, crawler, formatPage("hosta", "page2"), "Page 2 Data")
-		expectData(t, crawler, formatPage("hosta", "page3"), "Page 3 Data")
-		expectData(t, crawler, formatPage("hostb", "page1"), "Hello World")
-		expectData(t, crawler, formatPage("hostb", "page2"), "Page 2B Title")
-		expectData(t, crawler, formatPage("hostc", "page1"), "Page 1 Data")
-		expectData(t, crawler, formatPage("hostc", "page2"), "Page 2C Header")
+		expectData(t, crawler, formatPage(_hosta, _page1), data[hap1])
+		expectData(t, crawler, formatPage(_hosta, _page2), data[hap2])
+		expectData(t, crawler, formatPage(_hosta, _page3), data[hap3])
+
+		expectData(t, crawler, formatPage(_hostb, _page1), data[hbp1])
+		expectData(t, crawler, formatPage(_hostb, _page2), data[hbp2])
+
+		expectData(t, crawler, formatPage(_hostc, _page1), data[hcp1])
+		expectData(t, crawler, formatPage(_hostc, _page2), data[hcp2])
 	}
 
 	/* end the test */
