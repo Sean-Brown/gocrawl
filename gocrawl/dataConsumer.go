@@ -49,13 +49,21 @@ loop:
 			break loop
 		case data := <-consumer.data:
 			fmt.Println("data consumer received data for ", data.URL)
-			go consumer.consume(data)
+			// increment the number of worker threads for this consumer
+			consumer.IncWorkers()
+			go func() {
+				// Defer decrementing the number of workers
+				defer consumer.DecWorkers()
+				consumer.consume(data)
+			}()
 		}
 	}
 }
 
 /* Consume the data */
 func (consumer *DataConsumer) consume(data DataCollection) {
+	// the text extracted from the DOM
+	text := ""
 	/* iterate the DOM-parsing rules */
 	for _, rule := range consumer.rules {
 		/* check if this rule applies to this url */
@@ -64,13 +72,18 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 			fmt.Println("Error matching url regex <", rule.UrlMatch, "> with ", data.URL)
 		} else if matched {
 			/* the rule does apply to this url, apply the rule */
-			fmt.Println("Matched <", rule.UrlMatch, "> to ", data.URL)
 			data.DOM.Find(rule.DataSelector).Each(func(_ int, sel *goquery.Selection) {
 				/* store the data */
-				text := strings.TrimSpace(sel.Text())
-				fmt.Println("Storing data ", text, " for url ", data.URL)
-				consumer.storage.Store(data.URL, text)
+				tmp := strings.TrimSpace(sel.Text())
+				if len(text) > 0 {
+					// append the data with a space
+					text = strings.Join([]string{text, tmp}, " ")
+				} else {
+					text = tmp
+				}
 			})
 		}
 	}
+	fmt.Println("Storing data", text, " for url", data.URL)
+	consumer.storage.Store(data.URL, text)
 }
