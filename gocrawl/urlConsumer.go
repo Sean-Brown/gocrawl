@@ -76,14 +76,14 @@ loop:
 			doc, err := goquery.NewDocument(urlData.URL)
 			if err != nil {
 				fmt.Println(err)
-			} else if urlData.Depth < consumer.rules.MaxDepth && !consumer.isCrawled(urlData.URL) {
+			} else if urlData.Depth <= consumer.rules.MaxDepth && !consumer.isCrawled(urlData.URL) {
 				/* consume the document in a separate thread, increment for that thread */
 				consumer.IncWorkers()
 				go func() {
 					// Defer decrementing the number of workers
 					defer consumer.DecWorkers()
 					fmt.Println("url consumer consuming:", urlData.URL)
-					consumer.consume(doc, urlData.Depth+1)
+					consumer.consume(doc, urlData.Depth)
 				}()
 				/* don't crawl this link again */
 				consumer.addCrawled(urlData.URL)
