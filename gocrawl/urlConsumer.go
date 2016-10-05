@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"net/url"
+	"net/http"
 )
 
 /* The URL Consumer */
@@ -24,6 +25,13 @@ type URLConsumer struct {
 	crawled map[string]bool
 	// make the 'crawled' make thread-safe
 	mux sync.RWMutex
+}
+
+type ConsumerError struct {
+	error string
+}
+func (err *ConsumerError) Error() string {
+	return err.error
 }
 
 func (consumer *URLConsumer) addCrawled(url string) {
@@ -73,7 +81,7 @@ loop:
 			// Count this worker as working
 			consumer.IncWorkers()
 			/* Download the DOM */
-			doc, err := goquery.NewDocument(urlData.URL)
+			doc, err := consumer.findDocument(urlData.URL)
 			if err != nil {
 				fmt.Println(err)
 			} else if urlData.Depth <= consumer.rules.MaxDepth && !consumer.isCrawled(urlData.URL) {
@@ -94,6 +102,23 @@ loop:
 	}
 }
 
+func (consumer *URLConsumer) findDocument(url string) (*goquery.Document, error) {
+	var doc *goquery.Document
+	// First make an http request to check for a non-200 status
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err);
+	} else if resp.StatusCode != 200 {
+		err = &ConsumerError{error: fmt.Sprintf("Bad HTTP status code received: %d, %s", resp.StatusCode, resp.Status)}
+	} else {
+		doc, err = goquery.NewDocument(url)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	return doc, err
+}
+
 /* Consume the url */
 func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 	// check that we won't exceed the max depth
@@ -103,6 +128,7 @@ func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 	}
 
 	// enqueue the data
+	fmt.Println("enqueuing", doc.Text())
 	consumer.data <- InitDataCollection(doc.Url.String(), doc)
 }
 
