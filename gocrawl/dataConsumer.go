@@ -76,8 +76,10 @@ func (consumer *DataConsumer) consume(data DataCollection) {
 				/* store the data */
 				tmp := strings.TrimSpace(sel.Text())
 				if len(text) > 0 {
-					// append the data with a space
-					text = strings.Join([]string{text, tmp}, " ")
+					if len(tmp) > 0 {
+						// append the data with a space
+						text = strings.Join([]string{text, tmp}, " ")
+					}
 				} else {
 					text = tmp
 				}
