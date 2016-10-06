@@ -128,7 +128,6 @@ func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 	}
 
 	// enqueue the data
-	fmt.Println("enqueuing", doc.Text())
 	consumer.data <- InitDataCollection(doc.Url.String(), doc)
 }
 
@@ -144,8 +143,8 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 		href, exists := sel.Attr(href)
 		shouldAdd, href := consumer.shouldAddLink(domain, href, depth)
 		if exists && shouldAdd {
-			fmt.Println("adding href", href, ", depth =", depth)
-			consumer.urls <- InitURLData(href, depth)
+			fmt.Println("adding href", href, ", depth =", depth + 1)
+			consumer.urls <- InitURLData(href, depth + 1)
 		}
 	})
 }
