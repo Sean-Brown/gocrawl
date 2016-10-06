@@ -48,6 +48,9 @@ const (
 	_page3 = "page3"
 	_page4 = "page4"
 	_page5 = "page5"
+	_index = "index"
+	_pagea = "pagea"
+	_pageb = "pageb"
 )
 const (
 	// Hosts
@@ -61,6 +64,9 @@ const (
 	page3 = hosta << 6
 	page4 = hosta << 7
 	page5 = hosta << 8
+	index = hosta << 9
+	pagea = hosta << 10
+	pageb = hostb << 11
 	// Combined
 	hap1 = hosta | page1
 	hap2 = hosta | page2
@@ -73,6 +79,11 @@ const (
 	hcp2 = hostc | page2
 	hcp3 = hostc | page3
 	hdp1 = hostd | page1
+	hdp2 = hostd | page2
+	hdp3 = hostd | page3
+	hdpa = hostd | pagea
+	hdpb = hostd | pageb
+	hdix = hostd | index
 )
 var selectors map[int]string = map[int]string {
 	hap1: "p#data",
@@ -89,6 +100,11 @@ var selectors map[int]string = map[int]string {
 	hcp3: "td",
 
 	hdp1: "h1",
+	hdp2: "h3 a ",
+	hdp3: "",
+	hdix: "p a",
+	hdpa: "",
+	hdpb: "",
 }
 var data map[int]string = map[int]string {
 	hap1: "Page 1 Data",
@@ -104,14 +120,24 @@ var data map[int]string = map[int]string {
 	hcp2: "Page 2C Header",
 	hcp3: "c1 data c2 data c3 data",
 
-	hdp1: "Page D1 Title",
+	hdp1: "Page 1D Title",
+	hdp2: "Page 2D Title ~~Squiggle~~",
+	hdp3: "Page 3D Title",
+	hdix: "Index Title Hello World!",
+	hdpa: "Page A Title",
+	hdpb: "Page B Title",
 }
 
+const port = 2015
+
 /**
- Return a string formatted as http://<host>:2015/<page>.html
+ Return a string formatted as http://<host>:<port>/<page>.html
  */
 func formatPage(host string, page string) string {
-	return fmt.Sprintf("http://%s:%d/%s.html", host, 2015, page)
+	return fmt.Sprintf("http://%s:%d/%s.html", host, port, page)
+}
+func formatSubdirPage(host string, page string) string {
+	return fmt.Sprintf("http://%s:%d/subdir/%s.html", host, port, page)
 }
 
 func getConfig(inMemory bool, host string, page string, sameDomain bool, depth int, dataSelectors []string) config.Config {
@@ -249,6 +275,7 @@ func Test_HostA_Page1_SameDomain_Depth2(t *testing.T) {
 	/* end the test */
 	endTest(quit, wait)
 }
+
 func Test_DoesNotCrawlSamePageTwice(t *testing.T) {
 	/* run the test */
 	crawler, quit, wait := runTest(getConfig(
@@ -377,7 +404,37 @@ func Test_HostA_Page4_NotSameDomain_Depth2(t *testing.T) {
 
 		expectData(t, crawler, formatPage(_hostc, _page3), data[hcp3])
 
+		// Can't find page d1, it's in the subfolder, not sure what the purpose is
 		//expectData(t, crawler, formatPage(_hostd, _page1), data[hdp1])
+	}
+
+	/* end the test */
+	endTest(quit, wait)
+}
+
+func Test_HostD_Index_SameDomain_Depth3(t *testing.T) {
+	/* run the test */
+	crawler, quit, wait := runTest(getConfig(
+		true,
+		_hostd,
+		_index,
+		true,
+		3,
+		[]string {
+			selectors[hdp1],
+			selectors[hdp2],
+			selectors[hdp3],
+			selectors[hdix],
+		},
+	))
+
+	if crawler != nil {
+		fmt.Println(crawler.GetDS())
+		/* assert that we got the data we expect to */
+		expectData(t, crawler, formatSubdirPage(_hostd, _page1), data[hdp1])
+		expectData(t, crawler, formatSubdirPage(_hostd, _page2), data[hdp2])
+		expectData(t, crawler, formatPage(_hostd, _page3), data[hdp3])
+		expectData(t, crawler, formatPage(_hostd, _index), data[hdix])
 	}
 
 	/* end the test */
