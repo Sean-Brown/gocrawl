@@ -9,6 +9,10 @@ type iConsumer interface {
 	NumWorkers() int
 }
 
+/*
+Consumer - The base consumer type
+@implements the iConsumer interface
+*/
 type Consumer struct {
 	/* this struct implement the "Consumer" interfaces */
 	iConsumer
@@ -22,16 +26,27 @@ type Consumer struct {
 	workerMux sync.RWMutex
 }
 
+/*
+IncWorkers - Increment the number of active workers
+*/
 func (consumer *Consumer) IncWorkers() {
 	consumer.workerMux.Lock()
 	consumer.numWorkers++
 	consumer.workerMux.Unlock()
 }
+
+/*
+DecWorkers - Decrement the number of active workers
+*/
 func (consumer *Consumer) DecWorkers() {
 	consumer.workerMux.Lock()
 	consumer.numWorkers--
 	consumer.workerMux.Unlock()
 }
+
+/*
+NumWorkers - Get the number of active workers
+*/
 func (consumer *Consumer) NumWorkers() int {
 	var numWorkers int
 	consumer.workerMux.RLock()

@@ -10,7 +10,7 @@ import (
 	"fmt"
 )
 
-const urlConsumerDom = `<html>
+const UrlConsumerDom = `<html>
 <head>
 <title>woooo</title>
 <meta a="b">
@@ -28,34 +28,34 @@ const urlConsumerDom = `<html>
 var _url = &url.URL{Path: "www.a.com/somepage", Host: "a"}
 
 func makeNewDoc(t *testing.T) *goquery.Document {
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(urlConsumerDom))
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(UrlConsumerDom))
 	if err != nil {
 		t.Fatal(err)
 	}
 	doc.Url = _url
 	return doc
 }
-func initURLConsumer(sameDomain bool) *URLConsumer {
-	return &URLConsumer{
+func initUrlConsumer(sameDomain bool) *UrlConsumer {
+	return &UrlConsumer{
 		/* make a buffered channel so the go routines won't freeze */
-		urls:  make(chan URLData, 2),
+		urls:  make(chan UrlData, 2),
 		rules: config.InitURLParsingRules(sameDomain, 10),
 	}
 }
-func assertLinksFound(t *testing.T, urls chan URLData, expected int) {
+func assertLinksFound(t *testing.T, urls chan UrlData, expected int) {
 	found := len(urls)
 	assert.Equal(t, found, expected, fmt.Sprintf("Failed to find all the urls. Expected: %d, Actual: %d", expected, found))
 }
 
 func TestParsesAllLinksWhenAllDomainsAreAllowed(t *testing.T) {
-	c := initURLConsumer(false)
+	c := initUrlConsumer(false)
 	doc := makeNewDoc(t)
 	c.parseLinks(doc, 1)
 	assertLinksFound(t, c.urls, 2)
 }
 
 func TestDoesNotParseLinksWhenOnlyLinksInTheSameDomainAreAllowed(t *testing.T) {
-	c := initURLConsumer(true)
+	c := initUrlConsumer(true)
 	doc := makeNewDoc(t)
 	c.parseLinks(doc, 1)
 	assertLinksFound(t, c.urls, 1)

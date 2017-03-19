@@ -2,23 +2,26 @@ package gocrawl
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+	"sync"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Sean-Brown/gocrawl/config"
 	"github.com/bobesa/go-domain-util/domainutil"
-	"strings"
-	"sync"
-	"net/url"
-	"net/http"
 )
 
-/* The URL Consumer */
-type URLConsumer struct {
+/*
+UrlConsumer - Subclass of the base Consumer, this class specializes in crawling and parsing the DOM
+*/
+type UrlConsumer struct {
 	/* Compose with the Consumer struct */
 	Consumer
 	/* channel of urls (and their corresponding depth) that the url consumer consumes */
-	urls chan URLData
+	urls chan UrlData
 	/* the channel of data that will be parsed by a data consumer */
-	data chan DataCollection
+	data chan DomQuery
 	/* the parsing rules */
 	rules config.URLParsingRules
 	/* a store of urls already crawled */
@@ -27,14 +30,18 @@ type URLConsumer struct {
 	mux sync.RWMutex
 }
 
+/*
+ConsumerError - the error type produced by the UrlConsumer
+*/
 type ConsumerError struct {
 	error string
 }
+
 func (err *ConsumerError) Error() string {
 	return err.error
 }
 
-func (consumer *URLConsumer) addCrawled(url string) {
+func (consumer *UrlConsumer) addCrawled(url string) {
 	if !consumer.isCrawled(url) {
 		// Set the site to 'crawled' -- obtain a write lock
 		consumer.mux.Lock()
@@ -43,7 +50,7 @@ func (consumer *URLConsumer) addCrawled(url string) {
 	}
 }
 
-func (consumer *URLConsumer) isCrawled(url string) bool {
+func (consumer *UrlConsumer) isCrawled(url string) bool {
 	var crawled bool
 	// Determine if this url is already set, only use a read lock
 	consumer.mux.RLock()
@@ -52,24 +59,28 @@ func (consumer *URLConsumer) isCrawled(url string) bool {
 	return crawled
 }
 
-/* Make a new URL consumer */
-func NewURLConsumer(urls chan URLData, data chan DataCollection, quit chan int, rules config.URLParsingRules) *URLConsumer {
-	c := &URLConsumer{
+/*
+NewUrlConsumer - Make a new URL consumer
+*/
+func NewUrlConsumer(urls chan UrlData, data chan DomQuery, quit chan int, rules config.URLParsingRules) *UrlConsumer {
+	c := &UrlConsumer{
 		Consumer: Consumer{
 			Quit:      quit,
 			WaitGroup: &sync.WaitGroup{},
 		},
-		urls:  urls,
-		data:  data,
-		rules: rules,
+		urls:    urls,
+		data:    data,
+		rules:   rules,
 		crawled: make(map[string]bool),
 	}
 	c.WaitGroup.Add(1)
 	return c
 }
 
-/* Consumption Loop */
-func (consumer *URLConsumer) Consume() {
+/*
+Consume - The UrlConsumer's consumption loop
+*/
+func (consumer *UrlConsumer) Consume() {
 	defer consumer.WaitGroup.Done()
 loop:
 	for {
@@ -77,24 +88,24 @@ loop:
 		case <-consumer.Quit:
 			fmt.Println("url consumer received the quit signal")
 			break loop
-		case urlData := <-consumer.urls:
+		case UrlData := <-consumer.urls:
 			// Count this worker as working
 			consumer.IncWorkers()
 			/* Download the DOM */
-			doc, err := consumer.findDocument(urlData.URL)
+			doc, err := consumer.findDocument(UrlData.URL)
 			if err != nil {
 				fmt.Println(err)
-			} else if urlData.Depth <= consumer.rules.MaxDepth && !consumer.isCrawled(urlData.URL) {
+			} else if UrlData.Depth <= consumer.rules.MaxDepth && !consumer.isCrawled(UrlData.URL) {
 				/* consume the document in a separate thread, increment for that thread */
 				consumer.IncWorkers()
 				go func() {
 					// Defer decrementing the number of workers
 					defer consumer.DecWorkers()
-					fmt.Println("url consumer consuming:", urlData.URL)
-					consumer.consume(doc, urlData.Depth)
+					fmt.Println("url consumer consuming:", UrlData.URL)
+					consumer.consume(doc, UrlData.Depth)
 				}()
 				/* don't crawl this link again */
-				consumer.addCrawled(urlData.URL)
+				consumer.addCrawled(UrlData.URL)
 			}
 			// Uncount this worker
 			consumer.DecWorkers()
@@ -102,12 +113,12 @@ loop:
 	}
 }
 
-func (consumer *URLConsumer) findDocument(url string) (*goquery.Document, error) {
+func (consumer *UrlConsumer) findDocument(url string) (*goquery.Document, error) {
 	var doc *goquery.Document
 	// First make an http request to check for a non-200 status
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println(err);
+		fmt.Println(err)
 	} else if resp.StatusCode != 200 {
 		err = &ConsumerError{error: fmt.Sprintf("Bad HTTP status code received: %d, %s", resp.StatusCode, resp.Status)}
 	} else {
@@ -120,7 +131,7 @@ func (consumer *URLConsumer) findDocument(url string) (*goquery.Document, error)
 }
 
 /* Consume the url */
-func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
+func (consumer *UrlConsumer) consume(doc *goquery.Document, depth int) {
 	// check that we won't exceed the max depth
 	if (depth + 1) <= consumer.rules.MaxDepth {
 		// the next depth is within the crawl limit, parse and enqueue the links on this page
@@ -128,11 +139,11 @@ func (consumer *URLConsumer) consume(doc *goquery.Document, depth int) {
 	}
 
 	// enqueue the data
-	consumer.data <- InitDataCollection(doc.Url.String(), doc)
+	consumer.data <- InitDomQuery(doc.Url.String(), doc)
 }
 
 /* Parse and enqueue the links from the document */
-func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
+func (consumer *UrlConsumer) parseLinks(doc *goquery.Document, depth int) {
 	// set the doamin equal to the host in the URL
 	domain := doc.Url.Host
 	if domainutil.HasSubdomain(domain) {
@@ -143,17 +154,17 @@ func (consumer *URLConsumer) parseLinks(doc *goquery.Document, depth int) {
 		href, exists := sel.Attr(href)
 		shouldAdd, href := consumer.shouldAddLink(domain, href, depth)
 		if exists && shouldAdd {
-			fmt.Println("adding href", href, ", depth =", depth + 1)
-			consumer.urls <- InitURLData(href, depth + 1)
+			fmt.Println("adding href", href, ", depth =", depth+1)
+			consumer.urls <- InitUrlData(href, depth+1)
 		}
 	})
 }
 
 /* Add the href if there is no domain restriction or if the href is in the domain, returns a possibly modified href */
-func (consumer *URLConsumer) shouldAddLink(domain string, href string, currentDepth int) (bool, string) {
+func (consumer *UrlConsumer) shouldAddLink(domain string, href string, currentDepth int) (bool, string) {
 	shouldAdd := false
 	/* if the parsed href has no domain, add the current domain */
-	fmt.Println("URLConsumer found href", href)
+	fmt.Println("UrlConsumer found href", href)
 	if strings.Index(href, "http://") == -1 && strings.Index(href, "www.") == -1 {
 		// There's no "http" or "www." prefix, assume we're on the given domain,
 		// at this point assume href is for a page on the same domain

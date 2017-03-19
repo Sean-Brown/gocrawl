@@ -16,10 +16,10 @@ func main() {
 	/* read the configuration file */
 	conf := config.ReadConfig(*configPath)
 	/* create the channel to funnel URLs through and add the start url */
-	urls := make(chan gocrawl.URLData, 1)
-	urls <- gocrawl.InitURLData(conf.StartUrl, 0)
+	urls := make(chan gocrawl.UrlData, 1)
+	urls <- gocrawl.InitUrlData(conf.StartUrl, 0)
 	/* channel to funnel URL DOM data through */
-	data := make(chan gocrawl.DataCollection)
+	data := make(chan gocrawl.DomQuery)
 	/* channel to signal workers to quit */
 	quit := make(chan int, 1)
 	/* channel to receive OS interrupts on */
@@ -27,8 +27,8 @@ func main() {
 	signal.Notify(sig, os.Interrupt)
 
 	/* *** Consume URLs and data *** */
-	urlConsumer := gocrawl.NewURLConsumer(urls, data, quit, conf.UrlParsingRules)
-	go urlConsumer.Consume()
+	UrlConsumer := gocrawl.NewUrlConsumer(urls, data, quit, conf.UrlParsingRules)
+	go UrlConsumer.Consume()
 	dataConsumer := gocrawl.NewDataConsumer(data, quit, conf.DataParsingRules, &gocrawl.InMemoryDataStorage{})
 	go dataConsumer.Consume()
 
@@ -38,6 +38,6 @@ func main() {
 	/* signal the threads to quit */
 	quit <- 1
 	/* wait for the threads to exit */
-	urlConsumer.WaitGroup.Wait()
+	UrlConsumer.WaitGroup.Wait()
 	dataConsumer.WaitGroup.Wait()
 }

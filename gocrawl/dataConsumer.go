@@ -1,27 +1,33 @@
 package gocrawl
 
 import (
+	"fmt"
+	"regexp"
+	"strings"
+	"sync"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Sean-Brown/gocrawl/config"
-	"regexp"
-	"sync"
-	"fmt"
-	"strings"
 )
 
+/*
+DataConsumer - Parses and stores DOM elements while adhering to a given set of rules.
+*/
 type DataConsumer struct {
 	/* Compose with the Consumer struct */
 	Consumer
 	/* the channel of data that the consumer will parse */
-	data chan DataCollection
+	data chan DomQuery
 	/* the rules for parsing the DOM */
 	rules []config.DataParsingRule
 	/* a dependency-injected data storage object to persist the data */
 	storage config.DataStorage
 }
 
-/* Make a new Data consumer */
-func NewDataConsumer(data chan DataCollection, quit chan int, rules []config.DataParsingRule, storage config.DataStorage) *DataConsumer {
+/*
+NewDataConsumer - Make a new Data consumer
+*/
+func NewDataConsumer(data chan DomQuery, quit chan int, rules []config.DataParsingRule, storage config.DataStorage) *DataConsumer {
 	if rules == nil {
 		rules = []config.DataParsingRule{}
 	}
@@ -38,7 +44,9 @@ func NewDataConsumer(data chan DataCollection, quit chan int, rules []config.Dat
 	return c
 }
 
-/* Consumption Loop */
+/*
+Consume - Consumption Loop
+*/
 func (consumer *DataConsumer) Consume() {
 	defer consumer.WaitGroup.Done()
 loop:
@@ -61,7 +69,7 @@ loop:
 }
 
 /* Consume the data */
-func (consumer *DataConsumer) consume(data DataCollection) {
+func (consumer *DataConsumer) consume(data DomQuery) {
 	// the text extracted from the DOM
 	text := ""
 	/* iterate the DOM-parsing rules */

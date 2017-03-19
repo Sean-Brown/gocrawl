@@ -1,0 +1,31 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "mxzGnlbADhIl68jAQPwKm+M1i/A=",
+			"path": "github.com/PuerkitoBio/goquery",
+			"revision": "152b1a2c8f5d0340f658bb656032a39b94e52958",
+			"revisionTime": "2016-08-31T16:22:11Z"
+		},
+		{
+			"checksumSHA1": "l3ImD378XOmQryTaxttarlBB2Hs=",
+			"path": "github.com/bobesa/go-domain-util/domainutil",
+			"revision": "b0f58b2366836c2600dac855dc832a774fc19b6e",
+			"revisionTime": "2015-10-01T06:56:12Z"
+		},
+		{
+			"checksumSHA1": "4UHzmUlIu5cW+I42bTvN1fuikNg=",
+			"path": "github.com/mholt/caddy",
+			"revision": "4adbcd256583f83144a74f65ddcd8a769a840071",
+			"revisionTime": "2016-09-25T03:11:30Z"
+		},
+		{
+			"checksumSHA1": "6RKpV2fKzhXl7aay5lelpiPljCY=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "976c720a22c8eb4eb6a0b4348ad85ad12491a506",
+			"revisionTime": "2016-09-25T22:06:09Z"
+		}
+	],
+	"rootPath": "github.com/Sean-Brown/gocrawl"
+}

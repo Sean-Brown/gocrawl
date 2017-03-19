@@ -1,11 +1,15 @@
 package gocrawl
 
 import (
-	"github.com/PuerkitoBio/goquery"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
-type DataCollection struct {
+/*
+DomQuery - The URL and the DOM elements that were parsed from that site
+*/
+type DomQuery struct {
 	/* the url fetched */
 	URL string
 	/* the time the url was fetched */
@@ -14,6 +18,9 @@ type DataCollection struct {
 	DOM *goquery.Document
 }
 
-func InitDataCollection(url string, dom *goquery.Document) DataCollection {
-	return DataCollection{URL: url, Fetched: time.Now().UTC(), DOM: dom}
+/*
+InitDomQuery - DomQuery constructor
+*/
+func InitDomQuery(url string, dom *goquery.Document) DomQuery {
+	return DomQuery{URL: url, Fetched: time.Now().UTC(), DOM: dom}
 }
